@@ -67,7 +67,7 @@ describe("Screen routing integration", () => {
     const state: DashboardNavigationState = { selectedIndex: 0 };
 
     // Dashboard key handler returns navigate action
-    const action = handleDashboardKey("Enter", state, prs);
+    const action = handleDashboardKey("return", state, prs);
     expect(action.action).toBe("navigate");
 
     if (action.action === "navigate") {
@@ -105,7 +105,7 @@ describe("Screen routing integration", () => {
     let stack: Screen[] = [{ name: "dashboard" }, { name: "diffnav", pr }];
 
     // Esc is a back key
-    expect(isBackKey("Escape")).toBe(true);
+    expect(isBackKey("escape")).toBe(true);
 
     // Pop returns to dashboard
     stack = popScreen(stack);
@@ -131,7 +131,7 @@ describe("Screen routing integration", () => {
     ];
 
     // Back from review-submit → diffnav
-    expect(isBackKey("Escape")).toBe(true);
+    expect(isBackKey("escape")).toBe(true);
     stack = popScreen(stack);
     expect(currentScreen(stack).name).toBe("diffnav");
 
@@ -188,7 +188,7 @@ describe("Screen routing integration", () => {
 
       // User selects PR #1 and presses Enter → goes to diffnav
       const navState: DashboardNavigationState = { selectedIndex: 0 };
-      const enterAction = handleDashboardKey("Enter", navState, prs);
+      const enterAction = handleDashboardKey("return", navState, prs);
       expect(enterAction.action).toBe("navigate");
       if (enterAction.action === "navigate") {
         stack = pushScreen(stack, { name: "diffnav", pr: enterAction.pr });
@@ -201,7 +201,7 @@ describe("Screen routing integration", () => {
       expect(diffnavData.title).toBe("Diff Nav");
 
       // User presses Escape → back to dashboard
-      expect(isBackKey("Escape")).toBe(true);
+      expect(isBackKey("escape")).toBe(true);
       stack = popScreen(stack);
       expect(currentScreen(stack).name).toBe("dashboard");
       expect(stack).toHaveLength(1);

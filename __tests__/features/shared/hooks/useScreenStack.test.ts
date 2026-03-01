@@ -133,7 +133,7 @@ describe("currentScreen", () => {
 
 describe("isBackKey", () => {
   it("should return true for Escape", () => {
-    expect(isBackKey("Escape")).toBe(true);
+    expect(isBackKey("escape")).toBe(true);
   });
 
   it("should return true for b", () => {
@@ -142,7 +142,7 @@ describe("isBackKey", () => {
 
   it("should return false for other keys", () => {
     expect(isBackKey("q")).toBe(false);
-    expect(isBackKey("Enter")).toBe(false);
+    expect(isBackKey("return")).toBe(false);
     expect(isBackKey("ArrowDown")).toBe(false);
     expect(isBackKey("a")).toBe(false);
   });

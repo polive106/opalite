@@ -60,7 +60,6 @@ switch (parsed.action) {
 
     if (parsed.command === "init") {
       await runInit();
-      process.exit(0);
       break;
     }
 

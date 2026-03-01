@@ -338,7 +338,7 @@ describe("Dashboard functional integration", () => {
       expect(row.ageColor).toBe("red");
 
       // User presses ↓ → "Add rate limiting" (yellow, second in api)
-      let action = handleDashboardKey("ArrowDown", state, flatPRs);
+      let action = handleDashboardKey("down", state, flatPRs);
       expect(action.action).toBe("select");
       if (action.action === "select") {
         state = { selectedIndex: action.index };
@@ -360,7 +360,7 @@ describe("Dashboard functional integration", () => {
       }
 
       // User presses ↓ at the bottom → stays on last item
-      action = handleDashboardKey("ArrowDown", state, flatPRs);
+      action = handleDashboardKey("down", state, flatPRs);
       if (action.action === "select") {
         expect(action.index).toBe(2); // still last
       }
@@ -382,7 +382,7 @@ describe("Dashboard functional integration", () => {
       }
 
       // Press ↑ → "Fix auth token refresh"
-      action = handleDashboardKey("ArrowUp", state, flatPRs);
+      action = handleDashboardKey("up", state, flatPRs);
       if (action.action === "select") {
         state = { selectedIndex: action.index };
         row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
@@ -390,7 +390,7 @@ describe("Dashboard functional integration", () => {
       }
 
       // Press ↑ at the top → stays on first
-      action = handleDashboardKey("ArrowUp", state, flatPRs);
+      action = handleDashboardKey("up", state, flatPRs);
       if (action.action === "select") {
         expect(action.index).toBe(0);
       }
@@ -399,7 +399,7 @@ describe("Dashboard functional integration", () => {
     it("should open diff review when user presses Enter", () => {
       // User navigated to "Add rate limiting" (index 1)
       const state: DashboardNavigationState = { selectedIndex: 1 };
-      const action = handleDashboardKey("Enter", state, flatPRs);
+      const action = handleDashboardKey("return", state, flatPRs);
 
       expect(action.action).toBe("navigate");
       if (action.action === "navigate") {
@@ -474,8 +474,8 @@ describe("Dashboard functional integration", () => {
 
       // Navigation on empty list does nothing
       const state: DashboardNavigationState = { selectedIndex: 0 };
-      expect(handleDashboardKey("ArrowDown", state, []).action).toBe("none");
-      expect(handleDashboardKey("Enter", state, []).action).toBe("none");
+      expect(handleDashboardKey("down", state, []).action).toBe("none");
+      expect(handleDashboardKey("return", state, []).action).toBe("none");
       // But quit still works
       expect(handleDashboardKey("q", state, []).action).toBe("quit");
     });

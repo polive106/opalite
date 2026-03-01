@@ -87,7 +87,7 @@ export function MyPRRow({ data, selected, width }: MyPRRowProps) {
     >
       <box flexDirection="row" width="100%">
         <text fg={ageHexColor}>{"\u25b8"} </text>
-        <text fg={theme.dimmed}>#{data.id}  </text>
+        <text fg={theme.dimmed}>{`#${data.id}  `}</text>
         <text fg={theme.fg}>{data.displayTitle}</text>
         <box flexGrow={1} />
         <text fg={ageHexColor}>{data.age}</text>

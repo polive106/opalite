@@ -374,7 +374,7 @@ describe("US-10 Leave comments functional integration", () => {
       expect(editorState.isOpen).toBe(true);
 
       // Step 2: User presses Tab while editor is open → ai-suggest action (stub)
-      const action = handleCommentEditorKey("Tab");
+      const action = handleCommentEditorKey("tab");
       expect(action.action).toBe("ai-suggest");
 
       // Step 3: Since this is a stub, the editor state does not change
@@ -387,7 +387,7 @@ describe("US-10 Leave comments functional integration", () => {
       const editorState = openInlineEditor("src/auth.ts", 45);
       expect(editorState.isOpen).toBe(true);
 
-      const action = handleCommentEditorKey("Escape");
+      const action = handleCommentEditorKey("escape");
       expect(action.action).toBe("close");
     });
   });

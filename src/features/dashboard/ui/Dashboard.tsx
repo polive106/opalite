@@ -177,8 +177,7 @@ export function Dashboard({
       </box>
       <box flexDirection="row" paddingX={1}>
         <text fg={theme.fg}>
-          {summary.total} PRs open · oldest: {summary.oldestAge} · avg:{" "}
-          {summary.averageAge}
+          {`${summary.total} PRs open · oldest: ${summary.oldestAge} · avg: ${summary.averageAge}`}
         </text>
       </box>
 

@@ -85,11 +85,11 @@ export type CommentEditorKeyAction =
   | { action: "none" };
 
 export function handleCommentEditorKey(keyName: string): CommentEditorKeyAction {
-  if (keyName === "Escape") {
+  if (keyName === "escape") {
     return { action: "close" };
   }
 
-  if (keyName === "Tab") {
+  if (keyName === "tab") {
     return { action: "ai-suggest" };
   }
 

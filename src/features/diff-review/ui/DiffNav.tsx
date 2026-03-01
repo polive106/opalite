@@ -229,7 +229,7 @@ export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps)
         >
           <box paddingX={1}>
             <text fg={theme.accent}>
-              Files ({files.length})
+              {`Files (${files.length})`}
             </text>
           </box>
           <scrollbox scrollY={true} flexGrow={1}>
