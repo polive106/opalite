@@ -159,6 +159,37 @@ describe("mergeConfigs", () => {
     expect(merged.agent).toBe("cursor-agent");
   });
 
+  it("should use shared autoRefreshInterval over local", () => {
+    const local: OpaliteConfig = {
+      workspace: "my-ws",
+      repos: ["repo-a"],
+      autoRefreshInterval: 60,
+    };
+    const shared: OpaliteConfig = {
+      workspace: "team-ws",
+      repos: ["team-repo"],
+      autoRefreshInterval: 180,
+    };
+
+    const merged = mergeConfigs(local, shared);
+    expect(merged.autoRefreshInterval).toBe(180);
+  });
+
+  it("should keep local autoRefreshInterval when shared has none", () => {
+    const local: OpaliteConfig = {
+      workspace: "my-ws",
+      repos: ["repo-a"],
+      autoRefreshInterval: 90,
+    };
+    const shared: OpaliteConfig = {
+      workspace: "team-ws",
+      repos: ["team-repo"],
+    };
+
+    const merged = mergeConfigs(local, shared);
+    expect(merged.autoRefreshInterval).toBe(90);
+  });
+
   it("should return shared config when no local config exists", () => {
     const shared: OpaliteConfig = {
       workspace: "team-ws",

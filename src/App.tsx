@@ -17,6 +17,7 @@ export interface AppProps {
   repos: string[];
   warningHours?: number;
   criticalHours?: number;
+  autoRefreshInterval?: number;
 }
 
 export function App({
@@ -25,6 +26,7 @@ export function App({
   repos,
   warningHours = 24,
   criticalHours = 48,
+  autoRefreshInterval,
 }: AppProps) {
   const [screen, setScreen] = useState<Screen>({ name: "dashboard" });
 
@@ -41,6 +43,7 @@ export function App({
           repos={repos}
           warningHours={warningHours}
           criticalHours={criticalHours}
+          autoRefreshInterval={autoRefreshInterval}
           navigate={navigate}
         />
       );
@@ -53,6 +56,7 @@ export function App({
           repos={repos}
           warningHours={warningHours}
           criticalHours={criticalHours}
+          autoRefreshInterval={autoRefreshInterval}
           navigate={navigate}
         />
       );

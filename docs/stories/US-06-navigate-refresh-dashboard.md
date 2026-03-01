@@ -18,14 +18,14 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/components/KeyBar.tsx` component: bottom bar with keybinding hints
-- [ ] Add keyboard navigation to `Dashboard.tsx` using `useKeyboard()`: `j`/`k`/`Up`/`Down` for cursor movement
-- [ ] Implement visual highlighting of the selected PR row
-- [ ] Add `Enter` handler to navigate to DiffNav screen with selected PR
-- [ ] Add `m` handler to navigate to MyPRs screen
-- [ ] Add `r` handler for manual refresh
-- [ ] Implement auto-refresh with configurable interval (default 2 minutes)
-- [ ] Integrate `KeyBar` into Dashboard with correct bindings
+- [x] Create `src/features/shared/widgets/KeyBar.tsx` component: bottom bar with keybinding hints
+- [x] Add keyboard navigation to `Dashboard.tsx` using `useKeyboard()`: `j`/`k`/`Up`/`Down` for cursor movement
+- [x] Implement visual highlighting of the selected PR row
+- [x] Add `Enter` handler to navigate to DiffNav screen with selected PR
+- [x] Add `m` handler to navigate to MyPRs screen
+- [x] Add `r` handler for manual refresh
+- [x] Implement auto-refresh with configurable interval (default 2 minutes)
+- [x] Integrate `KeyBar` into Dashboard with correct bindings
 
 ## Files to Create/Modify
 

@@ -7,6 +7,7 @@ export interface OpaliteConfig {
   workspace: string;
   repos: string[];
   agent?: string;
+  autoRefreshInterval?: number;
 }
 
 export function getDefaultConfigPath(): string {
@@ -51,5 +52,6 @@ export function mergeConfigs(
     workspace: shared.workspace ?? local.workspace,
     repos: shared.repos ?? local.repos,
     agent: shared.agent ?? local.agent,
+    autoRefreshInterval: shared.autoRefreshInterval ?? local.autoRefreshInterval,
   };
 }

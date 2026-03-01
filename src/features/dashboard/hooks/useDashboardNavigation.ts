@@ -11,6 +11,7 @@ export type DashboardKeyAction =
   | { action: "select"; index: number }
   | { action: "navigate"; pr: PR }
   | { action: "refresh" }
+  | { action: "my-prs" }
   | { action: "quit" }
   | { action: "none" };
 
@@ -24,6 +25,9 @@ export function handleDashboardKey(
   }
   if (keyName === "r") {
     return { action: "refresh" };
+  }
+  if (keyName === "m") {
+    return { action: "my-prs" };
   }
   if (flatPRs.length === 0) {
     return { action: "none" };
@@ -69,6 +73,9 @@ export function useDashboardNavigation(
         break;
       case "refresh":
         refresh();
+        break;
+      case "my-prs":
+        navigate({ name: "my-prs" });
         break;
       case "quit":
         process.exit(0);

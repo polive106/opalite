@@ -1,11 +1,20 @@
 import { useTerminalDimensions } from "@opentui/react";
 import { theme } from "../../../theme/tokyo-night";
-import { usePRs, formatLastFetch } from "../hooks/usePRs";
+import { usePRs, formatLastFetch, DEFAULT_AUTO_REFRESH_INTERVAL } from "../hooks/usePRs";
 import { useDashboardNavigation } from "../hooks/useDashboardNavigation";
 import { PRRow, formatPRRow } from "../widgets/PRRow";
+import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
 import type { AuthData } from "../../../services/auth";
 import type { PR } from "../../../types/review";
 import type { Screen } from "../../../App";
+
+const DASHBOARD_KEY_BINDINGS: KeyBinding[] = [
+  { key: "↑↓", label: "navigate" },
+  { key: "⏎", label: "review" },
+  { key: "m", label: "my PRs" },
+  { key: "r", label: "refresh" },
+  { key: "q", label: "quit" },
+];
 
 export interface DashboardProps {
   auth: AuthData;
@@ -13,6 +22,7 @@ export interface DashboardProps {
   repos: string[];
   warningHours: number;
   criticalHours: number;
+  autoRefreshInterval?: number;
   navigate: (screen: Screen) => void;
 }
 
@@ -22,13 +32,15 @@ export function Dashboard({
   repos,
   warningHours,
   criticalHours,
+  autoRefreshInterval = DEFAULT_AUTO_REFRESH_INTERVAL,
   navigate,
 }: DashboardProps) {
   const { width, height } = useTerminalDimensions();
   const { groups, loading, error, summary, lastFetch, refresh, prs } = usePRs(
     auth,
     workspace,
-    repos
+    repos,
+    autoRefreshInterval
   );
 
   // Build flat list of PRs for navigation
@@ -171,24 +183,7 @@ export function Dashboard({
       </box>
 
       {/* KeyBar */}
-      <box flexDirection="row" paddingX={1} paddingBottom={1} gap={2}>
-        <text>
-          <text fg={theme.accent}>↑↓</text>
-          <text fg={theme.dimmed}> navigate</text>
-        </text>
-        <text>
-          <text fg={theme.accent}>⏎</text>
-          <text fg={theme.dimmed}> review</text>
-        </text>
-        <text>
-          <text fg={theme.accent}>r</text>
-          <text fg={theme.dimmed}> refresh</text>
-        </text>
-        <text>
-          <text fg={theme.accent}>q</text>
-          <text fg={theme.dimmed}> quit</text>
-        </text>
-      </box>
+      <KeyBar bindings={DASHBOARD_KEY_BINDINGS} />
     </box>
   );
 }

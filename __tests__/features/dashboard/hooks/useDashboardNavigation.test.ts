@@ -108,6 +108,12 @@ describe("handleDashboardKey", () => {
     expect(result.action).toBe("quit");
   });
 
+  it("should return my-prs on m", () => {
+    const state: DashboardNavigationState = { selectedIndex: 0 };
+    const result = handleDashboardKey("m", state, prs);
+    expect(result.action).toBe("my-prs");
+  });
+
   it("should return none for unhandled keys", () => {
     const state: DashboardNavigationState = { selectedIndex: 0 };
     const result = handleDashboardKey("x", state, prs);
