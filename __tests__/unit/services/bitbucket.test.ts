@@ -5,6 +5,7 @@ import {
   fetchDiffStatFiles,
   fetchPRDiff,
   fetchPRComments,
+  postPRComment,
   type DiffStatEntry,
 } from "../../../src/services/bitbucket";
 import type { AuthData } from "../../../src/services/auth";
@@ -460,6 +461,137 @@ describe("fetchPRComments", () => {
 
     try {
       await fetchPRComments(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        "Your API token has expired. Run `opalite login` to add a new one."
+      );
+    }
+  });
+});
+
+describe("postPRComment", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should post a general comment and return the domain Comment", async () => {
+    const bbResponse: BitbucketComment = {
+      id: 500,
+      content: { raw: "Looks great!", markup: "markdown", html: "" },
+      user: { display_name: "Test User", nickname: "testuser" },
+      created_on: "2026-03-01T12:00:00Z",
+      updated_on: "2026-03-01T12:00:00Z",
+      deleted: false,
+    };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(bbResponse), { status: 201 })
+    );
+
+    const result = await postPRComment(mockAuth, "workspace", "repo", 42, {
+      content: "Looks great!",
+    });
+
+    expect(result.id).toBe(500);
+    expect(result.content).toBe("Looks great!");
+    expect(result.author.nickname).toBe("testuser");
+    expect(result.isInline).toBe(false);
+
+    // Verify POST was sent with correct body
+    const [url, options] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/pullrequests/42/comments");
+    expect(options.method).toBe("POST");
+    const body = JSON.parse(options.body as string);
+    expect(body.content.raw).toBe("Looks great!");
+  });
+
+  it("should post an inline comment with file path and line number", async () => {
+    const bbResponse: BitbucketComment = {
+      id: 501,
+      content: { raw: "Fix this", markup: "markdown", html: "" },
+      user: { display_name: "Test User", nickname: "testuser" },
+      created_on: "2026-03-01T12:00:00Z",
+      updated_on: "2026-03-01T12:00:00Z",
+      inline: { path: "src/auth.ts", to: 45 },
+      deleted: false,
+    };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(bbResponse), { status: 201 })
+    );
+
+    const result = await postPRComment(mockAuth, "workspace", "repo", 42, {
+      content: "Fix this",
+      inline: { path: "src/auth.ts", to: 45 },
+    });
+
+    expect(result.id).toBe(501);
+    expect(result.isInline).toBe(true);
+    expect(result.filePath).toBe("src/auth.ts");
+    expect(result.lineNumber).toBe(45);
+
+    const body = JSON.parse((fetchSpy.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body.inline.path).toBe("src/auth.ts");
+    expect(body.inline.to).toBe(45);
+  });
+
+  it("should post a reply comment with parent id", async () => {
+    const bbResponse: BitbucketComment = {
+      id: 502,
+      content: { raw: "Good point", markup: "markdown", html: "" },
+      user: { display_name: "Test User", nickname: "testuser" },
+      created_on: "2026-03-01T12:00:00Z",
+      updated_on: "2026-03-01T12:00:00Z",
+      inline: { path: "src/auth.ts", to: 45 },
+      parent: { id: 200 },
+      deleted: false,
+    };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(bbResponse), { status: 201 })
+    );
+
+    const result = await postPRComment(mockAuth, "workspace", "repo", 42, {
+      content: "Good point",
+      parentId: 200,
+    });
+
+    expect(result.id).toBe(502);
+    expect(result.parentId).toBe(200);
+
+    const body = JSON.parse((fetchSpy.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body.parent.id).toBe(200);
+  });
+
+  it("should throw on non-ok response", async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response("Server Error", { status: 500 })
+    );
+
+    try {
+      await postPRComment(mockAuth, "workspace", "repo", 42, {
+        content: "Test",
+      });
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toContain("Failed to post comment");
+    }
+  });
+
+  it("should throw on 401 response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Unauthorized", { status: 401 }));
+
+    try {
+      await postPRComment(mockAuth, "workspace", "repo", 42, {
+        content: "Test",
+      });
       expect(true).toBe(false);
     } catch (error) {
       expect((error as Error).message).toBe(

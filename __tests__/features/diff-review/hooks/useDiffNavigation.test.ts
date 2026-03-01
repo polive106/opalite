@@ -188,6 +188,38 @@ describe("handleDiffNavKey", () => {
     expect(action.action).toBe("back");
   });
 
+  // ─── c opens comment editor ───
+
+  it("should open comment editor on c when diff panel is focused", () => {
+    const state = makeState({ focusPanel: "diff" });
+    const action = handleDiffNavKey("c", state, FILE_COUNT);
+
+    expect(action.action).toBe("open-comment-editor");
+  });
+
+  it("should return none for c when tree panel is focused", () => {
+    const state = makeState({ focusPanel: "tree" });
+    const action = handleDiffNavKey("c", state, FILE_COUNT);
+
+    expect(action.action).toBe("none");
+  });
+
+  // ─── r opens reply editor ───
+
+  it("should open reply editor on r when diff panel is focused", () => {
+    const state = makeState({ focusPanel: "diff" });
+    const action = handleDiffNavKey("r", state, FILE_COUNT);
+
+    expect(action.action).toBe("open-reply-editor");
+  });
+
+  it("should return none for r when tree panel is focused", () => {
+    const state = makeState({ focusPanel: "tree" });
+    const action = handleDiffNavKey("r", state, FILE_COUNT);
+
+    expect(action.action).toBe("none");
+  });
+
   // ─── Unknown keys ───
 
   it("should return none for unrecognized keys", () => {

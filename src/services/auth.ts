@@ -52,17 +52,32 @@ export async function deleteAuthFile(
   }
 }
 
+export interface BbFetchOptions {
+  method?: string;
+  body?: unknown;
+}
+
 export async function bbFetch(
   endpoint: string,
-  auth: AuthData
+  auth: AuthData,
+  options?: BbFetchOptions
 ): Promise<Response> {
   const url = `${BITBUCKET_API_BASE}${endpoint}`;
-  const response = await fetch(url, {
+  const fetchOptions: RequestInit = {
     headers: {
       Authorization: getAuthHeader(auth),
       "Content-Type": "application/json",
     },
-  });
+  };
+
+  if (options?.method) {
+    fetchOptions.method = options.method;
+  }
+  if (options?.body !== undefined) {
+    fetchOptions.body = JSON.stringify(options.body);
+  }
+
+  const response = await fetch(url, fetchOptions);
 
   if (response.status === 401) {
     throw new Error(
