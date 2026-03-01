@@ -1,6 +1,6 @@
 {
   "name": "opalite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Terminal-based PR review and fix tool for Bitbucket Cloud",
   "type": "module",
   "bin": {
