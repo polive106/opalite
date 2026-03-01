@@ -1,5 +1,17 @@
 # opalite
 
+## 0.3.0
+
+### Minor Changes
+
+- 2b19ccc: Add review submission: approve, request changes, or comment on PRs from the terminal. Press `a` to approve or `x` to request changes from the DiffNav screen, with confirmation dialog and optional general comment.
+- 3cb556a: Add MyPRs screen (author mode) showing the logged-in user's open PRs with comment counts, unresolved counts, and reviewer statuses. Navigate with j/k/arrows, Enter to open comment queue, d to return to dashboard.
+
+### Patch Changes
+
+- 6e7c62b: Fix `c` and `r` keys not working on diff review screen when file tree is focused.
+- 993487a: Add Tab handler stub in comment editor for future AI comment suggestion (US-19).
+
 ## 0.2.0
 
 ### Minor Changes
