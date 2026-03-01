@@ -4,6 +4,7 @@ import { parseArgs, getVersion, getHelpText } from "./cli";
 import { runLogin } from "./commands/login";
 import { runLogout } from "./commands/logout";
 import { runInit } from "./commands/init";
+import { runUpdate, getUpdateMessage } from "./commands/update";
 import { checkAuth } from "./commands/authGuard";
 
 const args = process.argv.slice(2);
@@ -46,24 +47,39 @@ switch (parsed.action) {
       process.exit(1);
     }
 
+    if (parsed.command === "update") {
+      await runUpdate();
+      process.exit(0);
+      break;
+    }
+
     if (parsed.command === "init") {
       await runInit();
       process.exit(0);
       break;
     }
 
-    // Subcommands will be implemented in later stories (US-4+)
+    // Subcommands will be implemented in later stories
     console.log(`Command '${parsed.command}' is not yet implemented.`);
     process.exit(0);
     break;
   }
 
   case "run": {
+    // Non-blocking update check on startup
+    const updateNotice = getUpdateMessage();
+
     // TUI dashboard requires authentication
     const authCheck = await checkAuth();
     if (!authCheck.authenticated) {
       console.error(authCheck.message);
       process.exit(1);
+    }
+
+    // Show update notice if available (non-blocking — awaited after auth check)
+    const notice = await updateNotice;
+    if (notice) {
+      console.log(notice);
     }
 
     // TUI dashboard will be implemented in US-5+
