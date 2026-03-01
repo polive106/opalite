@@ -1,0 +1,10 @@
+# opalite shared config — commit this to your repo
+# Team members' local config (~/.config/opalite/config.yml) will be merged with this file.
+# Shared settings (workspace, repos) take precedence over local config.
+
+# Bitbucket workspace slug
+workspace: my-workspace
+
+# Repos to watch for PRs
+repos:
+  - my-repo

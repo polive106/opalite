@@ -19,14 +19,14 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/services/config.ts` with config loading, merging (shared `.opalite.yml` + local `~/.config/opalite/config.yml`), and saving
-- [ ] Implement workspace selection: fetch workspaces via API, auto-select if only one, prompt if multiple
-- [ ] Implement repo selection: list all repos in workspace, checkbox-style selection
-- [ ] Implement agent detection: check PATH for `claude`, `agent`, `cursor-agent` using `Bun.which()`
-- [ ] Handle agent scenarios: both found (ask user), one found (auto-select), none found (offer install or skip)
-- [ ] Save config to `~/.config/opalite/config.yml`
-- [ ] Add `init` subcommand to CLI entry point (`src/index.tsx`)
-- [ ] Ensure auth guard blocks `init` if not logged in
+- [x] Create `src/services/config.ts` with config loading, merging (shared `.opalite.yml` + local `~/.config/opalite/config.yml`), and saving
+- [x] Implement workspace selection: fetch workspaces via API, auto-select if only one, prompt if multiple
+- [x] Implement repo selection: list all repos in workspace, checkbox-style selection
+- [x] Implement agent detection: check PATH for `claude`, `agent`, `cursor-agent` using `Bun.which()`
+- [x] Handle agent scenarios: both found (ask user), one found (auto-select), none found (offer install or skip)
+- [x] Save config to `~/.config/opalite/config.yml`
+- [x] Add `init` subcommand to CLI entry point (`src/index.tsx`)
+- [x] Ensure auth guard blocks `init` if not logged in
 
 ## Files to Create/Modify
 

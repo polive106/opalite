@@ -3,6 +3,7 @@
 import { parseArgs, getVersion, getHelpText } from "./cli";
 import { runLogin } from "./commands/login";
 import { runLogout } from "./commands/logout";
+import { runInit } from "./commands/init";
 import { checkAuth } from "./commands/authGuard";
 
 const args = process.argv.slice(2);
@@ -45,7 +46,13 @@ switch (parsed.action) {
       process.exit(1);
     }
 
-    // Subcommands will be implemented in later stories (US-3, US-4)
+    if (parsed.command === "init") {
+      await runInit();
+      process.exit(0);
+      break;
+    }
+
+    // Subcommands will be implemented in later stories (US-4+)
     console.log(`Command '${parsed.command}' is not yet implemented.`);
     process.exit(0);
     break;
