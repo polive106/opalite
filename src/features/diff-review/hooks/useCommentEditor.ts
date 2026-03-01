@@ -63,6 +63,17 @@ export function setEditorError(state: CommentEditorState, error: string): Commen
   return { ...state, error, submitting: false };
 }
 
+export type CommentEditorKeyAction =
+  | { action: "request-suggestion" }
+  | { action: "none" };
+
+export function handleCommentEditorKey(keyName: string): CommentEditorKeyAction {
+  if (keyName === "Tab") {
+    return { action: "request-suggestion" };
+  }
+  return { action: "none" };
+}
+
 export function buildPostInput(state: CommentEditorState): PostCommentInput {
   const input: PostCommentInput = {
     content: state.text,

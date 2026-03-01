@@ -4,7 +4,7 @@ import { theme } from "../../../theme/tokyo-night";
 import { useDiff } from "../hooks/useDiff";
 import { useComments } from "../hooks/useComments";
 import { handleDiffNavKey } from "../hooks/useDiffNavigation";
-import { useCommentEditor } from "../hooks/useCommentEditor";
+import { useCommentEditor, handleCommentEditorKey } from "../hooks/useCommentEditor";
 import { FileTree } from "../widgets/FileTree";
 import { DiffHeader, formatDiffHeader } from "../widgets/DiffHeader";
 import {
@@ -68,6 +68,8 @@ export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
       if (e.name === "Escape") {
         editor.close();
       }
+      // Tab → AI suggestion stub (US-19 will implement the actual agent call)
+      handleCommentEditorKey(e.name);
       return;
     }
 

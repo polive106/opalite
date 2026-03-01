@@ -9,6 +9,7 @@ import {
   setEditorSubmitting,
   setEditorError,
   buildPostInput,
+  handleCommentEditorKey,
 } from "../../../../src/features/diff-review/hooks/useCommentEditor";
 
 describe("CommentEditor state management", () => {
@@ -150,5 +151,19 @@ describe("CommentEditor state management", () => {
     expect(input.content).toBe("Overall LGTM");
     expect(input.inline).toBeUndefined();
     expect(input.parentId).toBeUndefined();
+  });
+});
+
+describe("handleCommentEditorKey", () => {
+  it("should return request-suggestion action for Tab key", () => {
+    const result = handleCommentEditorKey("Tab");
+
+    expect(result.action).toBe("request-suggestion");
+  });
+
+  it("should return none action for unhandled keys", () => {
+    const result = handleCommentEditorKey("ArrowUp");
+
+    expect(result.action).toBe("none");
   });
 });

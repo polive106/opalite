@@ -121,7 +121,7 @@ describe("US-10 Leave comments functional integration", () => {
 
       // Step 4: Status bar shows submit/cancel hints
       const status = formatEditorStatus(editorState.submitting, editorState.error);
-      expect(status.text).toBe("Enter submit · Esc cancel");
+      expect(status.text).toBe("Enter submit · Tab AI suggest · Esc cancel");
       expect(status.isError).toBe(false);
 
       // Step 5: User types a comment

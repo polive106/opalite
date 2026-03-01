@@ -28,7 +28,7 @@ describe("formatEditorStatus", () => {
   it("should show submit hint when not submitting and no error", () => {
     const status = formatEditorStatus(false, null);
 
-    expect(status.text).toBe("Enter submit · Esc cancel");
+    expect(status.text).toBe("Enter submit · Tab AI suggest · Esc cancel");
     expect(status.isError).toBe(false);
   });
 

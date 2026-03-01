@@ -38,7 +38,7 @@ export function formatEditorStatus(
     return { text: `${error} · Enter retry · Esc cancel`, isError: true };
   }
 
-  return { text: "Enter submit · Esc cancel", isError: false };
+  return { text: "Enter submit · Tab AI suggest · Esc cancel", isError: false };
 }
 
 export interface CommentEditorProps {
