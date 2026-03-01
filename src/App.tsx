@@ -1,4 +1,5 @@
 import { Dashboard } from "./features/dashboard/ui/Dashboard";
+import { DiffNav } from "./features/diff-review/ui/DiffNav";
 import { PlaceholderScreen } from "./features/shared/widgets/PlaceholderScreen";
 import { useScreenStack } from "./features/shared/hooks/useScreenStack";
 import type { AuthData } from "./services/auth";
@@ -45,6 +46,14 @@ export function App({
         />
       );
     case "diffnav":
+      return (
+        <DiffNav
+          auth={auth}
+          workspace={workspace}
+          pr={current.pr}
+          goBack={goBack}
+        />
+      );
     case "review-submit":
     case "my-prs":
     case "comment-queue":

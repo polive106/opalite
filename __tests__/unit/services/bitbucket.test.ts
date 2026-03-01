@@ -2,6 +2,8 @@ import { describe, expect, it, beforeEach, afterEach, spyOn } from "bun:test";
 import {
   fetchOpenPRs,
   fetchOpenPRsForAllRepos,
+  fetchDiffStatFiles,
+  fetchPRDiff,
   type DiffStatEntry,
 } from "../../../src/services/bitbucket";
 import type { AuthData } from "../../../src/services/auth";
@@ -189,5 +191,153 @@ describe("fetchOpenPRsForAllRepos", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe("PR in repo-a");
+  });
+});
+
+describe("fetchDiffStatFiles", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should fetch file-level diffstat with paths", async () => {
+    const diffStatResponse = {
+      values: [
+        {
+          status: "modified",
+          lines_added: 10,
+          lines_removed: 5,
+          old: { path: "src/auth.ts" },
+          new: { path: "src/auth.ts" },
+        },
+        {
+          status: "added",
+          lines_added: 30,
+          lines_removed: 0,
+          old: null,
+          new: { path: "src/login.ts" },
+        },
+        {
+          status: "removed",
+          lines_added: 0,
+          lines_removed: 20,
+          old: { path: "src/old.ts" },
+          new: null,
+        },
+      ],
+    };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(diffStatResponse), { status: 200 })
+    );
+
+    const files = await fetchDiffStatFiles(mockAuth, "workspace", "repo", 42);
+
+    expect(files).toHaveLength(3);
+    expect(files[0]).toEqual({
+      path: "src/auth.ts",
+      status: "modified",
+      linesAdded: 10,
+      linesRemoved: 5,
+    });
+    expect(files[1]).toEqual({
+      path: "src/login.ts",
+      status: "added",
+      linesAdded: 30,
+      linesRemoved: 0,
+    });
+    expect(files[2]).toEqual({
+      path: "src/old.ts",
+      status: "removed",
+      linesAdded: 0,
+      linesRemoved: 20,
+    });
+  });
+
+  it("should handle pagination of diffstat entries", async () => {
+    const page1 = {
+      values: [
+        {
+          status: "modified",
+          lines_added: 5,
+          lines_removed: 2,
+          old: { path: "file1.ts" },
+          new: { path: "file1.ts" },
+        },
+      ],
+      next: "https://api.bitbucket.org/2.0/repositories/workspace/repo/pullrequests/42/diffstat?page=2",
+    };
+    const page2 = {
+      values: [
+        {
+          status: "added",
+          lines_added: 10,
+          lines_removed: 0,
+          old: null,
+          new: { path: "file2.ts" },
+        },
+      ],
+    };
+
+    fetchSpy
+      .mockResolvedValueOnce(new Response(JSON.stringify(page1), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(page2), { status: 200 }));
+
+    const files = await fetchDiffStatFiles(mockAuth, "workspace", "repo", 42);
+
+    expect(files).toHaveLength(2);
+    expect(files[0].path).toBe("file1.ts");
+    expect(files[1].path).toBe("file2.ts");
+  });
+
+  it("should return empty array on error", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Error", { status: 500 }));
+
+    const files = await fetchDiffStatFiles(mockAuth, "workspace", "repo", 42);
+
+    expect(files).toHaveLength(0);
+  });
+});
+
+describe("fetchPRDiff", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should fetch raw diff text for a PR", async () => {
+    const rawDiff = `diff --git a/src/auth.ts b/src/auth.ts
+--- a/src/auth.ts
++++ b/src/auth.ts
+@@ -1,3 +1,4 @@
+ import { join } from "path";
++import { homedir } from "os";
+
+ export function getAuthPath() {
+`;
+
+    fetchSpy.mockResolvedValueOnce(new Response(rawDiff, { status: 200 }));
+
+    const result = await fetchPRDiff(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toBe(rawDiff);
+  });
+
+  it("should return empty string on error", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Error", { status: 500 }));
+
+    const result = await fetchPRDiff(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toBe("");
   });
 });
