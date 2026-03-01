@@ -9,6 +9,7 @@ export interface FileTreeEntryData {
   linesAdded: number;
   linesRemoved: number;
   status: string;
+  commentCount: number;
 }
 
 const STATUS_MAP: Record<string, string> = {
@@ -31,6 +32,18 @@ export function formatFileTreeEntry(file: DiffStatFile): FileTreeEntryData {
     linesAdded: file.linesAdded,
     linesRemoved: file.linesRemoved,
     status: file.status,
+    commentCount: 0,
+  };
+}
+
+export function formatFileTreeEntryWithComments(
+  file: DiffStatFile,
+  commentCounts: Record<string, number>
+): FileTreeEntryData {
+  const entry = formatFileTreeEntry(file);
+  return {
+    ...entry,
+    commentCount: commentCounts[file.path] ?? 0,
   };
 }
 
@@ -46,10 +59,13 @@ interface FileTreeProps {
   selectedIndex: number;
   focused: boolean;
   height: number;
+  commentCounts?: Record<string, number>;
 }
 
-export function FileTree({ files, selectedIndex, focused, height }: FileTreeProps) {
-  const entries = files.map((f) => formatFileTreeEntry(f));
+export function FileTree({ files, selectedIndex, focused, height, commentCounts }: FileTreeProps) {
+  const entries = commentCounts
+    ? files.map((f) => formatFileTreeEntryWithComments(f, commentCounts))
+    : files.map((f) => formatFileTreeEntry(f));
 
   return (
     <box flexDirection="column" height={height}>
@@ -68,6 +84,9 @@ export function FileTree({ files, selectedIndex, focused, height }: FileTreeProp
             <text fg={statusColor}>{entry.statusIndicator} </text>
             <text fg={theme.dimmed}>{entry.directory}</text>
             <text fg={theme.fg}>{entry.filename}</text>
+            {entry.commentCount > 0 && (
+              <text fg={theme.comment}> [{entry.commentCount}]</text>
+            )}
             <box flexGrow={1} />
             <text fg={theme.green}>+{entry.linesAdded}</text>
             <text fg={theme.dimmed}> </text>

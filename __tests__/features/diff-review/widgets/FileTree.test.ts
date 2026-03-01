@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { formatFileTreeEntry } from "../../../../src/features/diff-review/widgets/FileTree";
+import { formatFileTreeEntry, formatFileTreeEntryWithComments } from "../../../../src/features/diff-review/widgets/FileTree";
 import type { DiffStatFile } from "../../../../src/services/bitbucket";
 
 describe("formatFileTreeEntry", () => {
@@ -74,5 +74,50 @@ describe("formatFileTreeEntry", () => {
 
     expect(entry.filename).toBe("README.md");
     expect(entry.directory).toBe("");
+  });
+});
+
+describe("formatFileTreeEntryWithComments", () => {
+  it("should include comment count when file has comments", () => {
+    const file: DiffStatFile = {
+      path: "src/auth.ts",
+      status: "modified",
+      linesAdded: 10,
+      linesRemoved: 5,
+    };
+    const commentCounts: Record<string, number> = { "src/auth.ts": 3 };
+
+    const entry = formatFileTreeEntryWithComments(file, commentCounts);
+
+    expect(entry.commentCount).toBe(3);
+    expect(entry.filename).toBe("auth.ts");
+    expect(entry.statusIndicator).toBe("M");
+  });
+
+  it("should show zero comments when file has none", () => {
+    const file: DiffStatFile = {
+      path: "src/login.ts",
+      status: "added",
+      linesAdded: 30,
+      linesRemoved: 0,
+    };
+    const commentCounts: Record<string, number> = { "src/auth.ts": 3 };
+
+    const entry = formatFileTreeEntryWithComments(file, commentCounts);
+
+    expect(entry.commentCount).toBe(0);
+  });
+
+  it("should show zero comments when no counts provided", () => {
+    const file: DiffStatFile = {
+      path: "src/auth.ts",
+      status: "modified",
+      linesAdded: 10,
+      linesRemoved: 5,
+    };
+
+    const entry = formatFileTreeEntryWithComments(file, {});
+
+    expect(entry.commentCount).toBe(0);
   });
 });

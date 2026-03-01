@@ -1,9 +1,14 @@
 import { useTerminalDimensions } from "@opentui/react";
 import { theme } from "../../../theme/tokyo-night";
 import { useDiff } from "../hooks/useDiff";
+import { useComments } from "../hooks/useComments";
 import { useDiffNavigation } from "../hooks/useDiffNavigation";
 import { FileTree } from "../widgets/FileTree";
 import { DiffHeader, formatDiffHeader } from "../widgets/DiffHeader";
+import {
+  CommentList,
+  formatCommentThread,
+} from "../widgets/CommentThread";
 import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
 import type { AuthData } from "../../../services/auth";
 import type { PR } from "../../../types/review";
@@ -29,6 +34,12 @@ export interface DiffNavProps {
 export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
   const { width, height } = useTerminalDimensions();
   const { files, fileDiffs, loading, error } = useDiff(
+    auth,
+    workspace,
+    pr.repo,
+    pr.id
+  );
+  const { grouped, fileCommentCounts, loading: commentsLoading } = useComments(
     auth,
     workspace,
     pr.repo,
@@ -79,7 +90,21 @@ export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
   }
 
   const selectedFileDiff = fileDiffs[selectedFileIndex]?.content ?? "";
+  const selectedFilePath = files[selectedFileIndex]?.path;
   const contentHeight = height - 5;
+
+  // Get inline comments for the currently selected file
+  const selectedFileComments = selectedFilePath
+    ? (grouped.fileComments[selectedFilePath] ?? [])
+    : [];
+  const selectedFileThreads = selectedFileComments.map((c) =>
+    formatCommentThread(c, now)
+  );
+
+  // Format general comment threads
+  const generalThreads = grouped.generalComments.map((c) =>
+    formatCommentThread(c, now)
+  );
 
   return (
     <box
@@ -113,11 +138,12 @@ export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
               selectedIndex={selectedFileIndex}
               focused={focusPanel === "tree"}
               height={contentHeight}
+              commentCounts={fileCommentCounts}
             />
           </scrollbox>
         </box>
 
-        {/* Diff viewer */}
+        {/* Diff viewer + comments */}
         <box
           flexGrow={1}
           flexDirection="column"
@@ -125,18 +151,32 @@ export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
         >
           {files.length > 0 && (
             <box paddingX={1}>
-              <text fg={theme.fg}>{files[selectedFileIndex]?.path ?? ""}</text>
+              <text fg={theme.fg}>{selectedFilePath ?? ""}</text>
             </box>
           )}
           <scrollbox scrollY={true} flexGrow={1}>
             {selectedFileDiff ? (
-              <diff diff={selectedFileDiff} view={viewMode} />
+              <box flexDirection="column">
+                <diff diff={selectedFileDiff} view={viewMode} />
+                {!commentsLoading && selectedFileThreads.length > 0 && (
+                  <CommentList threads={selectedFileThreads} title="Inline Comments" />
+                )}
+              </box>
             ) : (
               <box paddingX={1} paddingY={1}>
                 <text fg={theme.dimmed}>No diff to display</text>
               </box>
             )}
           </scrollbox>
+
+          {/* General comments section */}
+          {!commentsLoading && generalThreads.length > 0 && (
+            <box border={["top"]} borderColor={theme.border}>
+              <scrollbox scrollY={true} maxHeight={Math.floor(height * 0.3)}>
+                <CommentList threads={generalThreads} title="General Comments" />
+              </scrollbox>
+            </box>
+          )}
         </box>
       </box>
 

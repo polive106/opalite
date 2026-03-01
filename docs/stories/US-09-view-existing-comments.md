@@ -16,12 +16,12 @@
 
 ## Technical Tasks
 
-- [ ] Add comment fetching to `src/services/bitbucket.ts`: `GET /repositories/{workspace}/{repo}/pullrequests/{id}/comments` with auto-pagination
-- [ ] Create `src/components/CommentList.tsx` component: display comments with author, timestamp, and content
-- [ ] Implement comment thread nesting (replies grouped under parent comment)
-- [ ] Integrate inline comments into DiffNav at the relevant diff lines
-- [ ] Add a separate section in DiffNav for general (non-inline) comments
-- [ ] Update `FileTree.tsx` to show per-file comment count badges
+- [x] Add comment fetching to `src/services/bitbucket.ts`: `GET /repositories/{workspace}/{repo}/pullrequests/{id}/comments` with auto-pagination
+- [x] Create `src/components/CommentList.tsx` component: display comments with author, timestamp, and content
+- [x] Implement comment thread nesting (replies grouped under parent comment)
+- [x] Integrate inline comments into DiffNav at the relevant diff lines
+- [x] Add a separate section in DiffNav for general (non-inline) comments
+- [x] Update `FileTree.tsx` to show per-file comment count badges
 
 ## Files to Create/Modify
 

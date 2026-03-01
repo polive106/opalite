@@ -4,10 +4,11 @@ import {
   fetchOpenPRsForAllRepos,
   fetchDiffStatFiles,
   fetchPRDiff,
+  fetchPRComments,
   type DiffStatEntry,
 } from "../../../src/services/bitbucket";
 import type { AuthData } from "../../../src/services/auth";
-import type { BitbucketPR, PaginatedResponse } from "../../../src/types/bitbucket";
+import type { BitbucketPR, BitbucketComment, PaginatedResponse } from "../../../src/types/bitbucket";
 
 const mockAuth: AuthData = {
   email: "user@example.com",
@@ -339,5 +340,131 @@ describe("fetchPRDiff", () => {
     const result = await fetchPRDiff(mockAuth, "workspace", "repo", 42);
 
     expect(result).toBe("");
+  });
+});
+
+function makeBBComment(overrides: Partial<BitbucketComment> = {}): BitbucketComment {
+  return {
+    id: 1,
+    content: { raw: "Looks good!", markup: "markdown", html: "<p>Looks good!</p>" },
+    user: { display_name: "Alice", nickname: "alice" },
+    created_on: "2026-02-28T10:00:00Z",
+    updated_on: "2026-02-28T10:00:00Z",
+    deleted: false,
+    ...overrides,
+  };
+}
+
+describe("fetchPRComments", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should fetch comments and transform to domain Comment objects", async () => {
+    const comment = makeBBComment({
+      id: 10,
+      content: { raw: "Nice work!", markup: "markdown", html: "" },
+      user: { display_name: "Bob", nickname: "bob" },
+    });
+    const response: PaginatedResponse<BitbucketComment> = { values: [comment] };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(response), { status: 200 })
+    );
+
+    const result = await fetchPRComments(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(10);
+    expect(result[0].content).toBe("Nice work!");
+    expect(result[0].author.displayName).toBe("Bob");
+    expect(result[0].author.nickname).toBe("bob");
+    expect(result[0].isInline).toBe(false);
+    expect(result[0].replies).toEqual([]);
+  });
+
+  it("should mark inline comments with file path and line number", async () => {
+    const comment = makeBBComment({
+      id: 20,
+      inline: { path: "src/auth.ts", to: 45 },
+    });
+    const response: PaginatedResponse<BitbucketComment> = { values: [comment] };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(response), { status: 200 })
+    );
+
+    const result = await fetchPRComments(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].isInline).toBe(true);
+    expect(result[0].filePath).toBe("src/auth.ts");
+    expect(result[0].lineNumber).toBe(45);
+  });
+
+  it("should handle pagination of comments", async () => {
+    const page1: PaginatedResponse<BitbucketComment> = {
+      values: [makeBBComment({ id: 1 })],
+      next: "https://api.bitbucket.org/2.0/repositories/workspace/repo/pullrequests/42/comments?page=2",
+    };
+    const page2: PaginatedResponse<BitbucketComment> = {
+      values: [makeBBComment({ id: 2 })],
+    };
+
+    fetchSpy
+      .mockResolvedValueOnce(new Response(JSON.stringify(page1), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(page2), { status: 200 }));
+
+    const result = await fetchPRComments(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe(1);
+    expect(result[1].id).toBe(2);
+  });
+
+  it("should exclude deleted comments", async () => {
+    const comments = [
+      makeBBComment({ id: 1, deleted: false }),
+      makeBBComment({ id: 2, deleted: true }),
+      makeBBComment({ id: 3, deleted: false }),
+    ];
+    const response: PaginatedResponse<BitbucketComment> = { values: comments };
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(response), { status: 200 })
+    );
+
+    const result = await fetchPRComments(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe(1);
+    expect(result[1].id).toBe(3);
+  });
+
+  it("should return empty array on error", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Error", { status: 500 }));
+
+    const result = await fetchPRComments(mockAuth, "workspace", "repo", 42);
+
+    expect(result).toEqual([]);
+  });
+
+  it("should throw on 401 response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Unauthorized", { status: 401 }));
+
+    try {
+      await fetchPRComments(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        "Your API token has expired. Run `opalite login` to add a new one."
+      );
+    }
   });
 });
