@@ -170,24 +170,54 @@ it('should group PRs by repo and sort alphabetically', () => {
 - State transitions verified (loading → data → error)
 - Can be written before UI implementation
 
-#### 3. UI screens (`src/features/{feature}/ui/`) → Integration tests (`__tests__/features/{feature}/integration/`)
+#### 3. Feature-level functional integration tests (`__tests__/features/{feature}/integration/`)
 
-Screens compose hooks + widgets. Integration tests verify complete user flows — initial state, interactions, and resulting UI updates.
+Mock at the **external boundary** (`globalThis.fetch`), then exercise the **full production pipeline**:
+
+```
+fetch mock (Bitbucket API responses)
+  → service (auto-pagination, parallel fetch, domain transform)
+    → hook logic (grouping, sorting, summary)
+      → widget formatting (age colors, display data)
+        → key handler (navigation state machine)
+```
+
+Tests read like acceptance criteria / user scenarios:
 
 ```tsx
 // __tests__/features/dashboard/integration/Dashboard.test.tsx
-it('should group PRs by repo and format rows for display', () => {
+it('should let user navigate down through the PR list', async () => {
+  mockBitbucketAPI({ api: [...], frontend: [...] })
+
+  // Full pipeline: fetch → group → format → navigate
+  const prs = await fetchOpenPRsForAllRepos(mockAuth, 'acme', ['api', 'frontend'])
   const groups = groupByRepo(prs)
-  expect(groups).toHaveLength(2)
-  const firstPRRow = formatPRRow(groups[0].prs[0], now, 24, 48)
-  expect(firstPRRow.title).toBe('Fix endpoint')
+  const flatPRs = groups.flatMap(g => g.prs)
+
+  let state = { selectedIndex: 0 }
+  let row = formatPRRow(flatPRs[0], now, 24, 48)
+  expect(row.title).toBe('Fix auth token refresh')
+
+  // User presses ↓
+  const action = handleDashboardKey('ArrowDown', state, flatPRs)
+  if (action.action === 'select') {
+    state = { selectedIndex: action.index }
+    row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48)
+    expect(row.title).toBe('Add rate limiting')
+    expect(row.ageColor).toBe('yellow')
+  }
 })
 ```
 
-- Tests complete user flows end-to-end
-- Verifies integration between hooks and widgets
-- Catches wiring issues
-- Provides confidence in feature functionality
+**To replicate for another feature:**
+1. Mock `globalThis.fetch` with raw API responses for your feature
+2. Call the service function to get domain objects
+3. Run hook logic (grouping, filtering, etc.) on the result
+4. Format for display using widget helpers
+5. Simulate user interactions through the key handler
+6. Assert both the data and the UI state at each step
+
+See `__tests__/features/dashboard/integration/Dashboard.test.tsx` as the reference implementation.
 
 ### Separation rules
 

@@ -90,7 +90,17 @@ Follow opalite's **feature-sliced architecture** — build from the inside out, 
 - Receive `navigate` function from `App.tsx` for screen routing
 - Use `useKeyboard()` for screen-level keybindings — clean up on unmount
 - `App.tsx` uses `useState<Screen>` with a discriminated union for routing
-- **Test in** `__tests__/features/{feature}/integration/` — inject hook + widget, simulate user interactions, assert UI behavior
+- **Test in** `__tests__/features/{feature}/integration/` — feature-level functional integration tests
+
+#### Integration test pattern (mock at external boundary)
+Mock `globalThis.fetch` with raw API responses, then exercise the full pipeline as production code:
+1. Mock `globalThis.fetch` → return Bitbucket API JSON responses
+2. Call service function → transforms API data to domain objects
+3. Run hook logic → grouping, sorting, summary, formatting
+4. Simulate key events → navigation state machine
+5. Assert at each step — data correctness AND what the user would see
+
+Reference: `__tests__/features/dashboard/integration/Dashboard.test.tsx`
 
 #### Shared (`src/features/shared/`)
 - Logic or widgets shared between two or more features
