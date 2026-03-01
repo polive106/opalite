@@ -197,11 +197,11 @@ describe("handleDiffNavKey", () => {
     expect(action.action).toBe("open-comment-editor");
   });
 
-  it("should return none for c when tree panel is focused", () => {
+  it("should open comment editor on c when tree panel is focused", () => {
     const state = makeState({ focusPanel: "tree" });
     const action = handleDiffNavKey("c", state, FILE_COUNT);
 
-    expect(action.action).toBe("none");
+    expect(action.action).toBe("open-comment-editor");
   });
 
   // ─── r opens reply editor ───
@@ -213,11 +213,11 @@ describe("handleDiffNavKey", () => {
     expect(action.action).toBe("open-reply-editor");
   });
 
-  it("should return none for r when tree panel is focused", () => {
+  it("should open reply editor on r when tree panel is focused", () => {
     const state = makeState({ focusPanel: "tree" });
     const action = handleDiffNavKey("r", state, FILE_COUNT);
 
-    expect(action.action).toBe("none");
+    expect(action.action).toBe("open-reply-editor");
   });
 
   // ─── a approves ───

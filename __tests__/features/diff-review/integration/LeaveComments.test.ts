@@ -292,10 +292,10 @@ describe("US-10 Leave comments functional integration", () => {
     });
   });
 
-  // ─── AC: "c is only active on diff panel" ────────────────────────────────
+  // ─── AC: "c and r work regardless of focused panel" ─────────────────────
 
   describe("c and r keybindings context", () => {
-    it("should not open comment editor when tree panel is focused", () => {
+    it("should open comment/reply editor regardless of focused panel", () => {
       const navState: DiffNavState = {
         focusPanel: "tree",
         selectedFileIndex: 0,
@@ -303,10 +303,10 @@ describe("US-10 Leave comments functional integration", () => {
       };
 
       const cAction = handleDiffNavKey("c", navState, 3);
-      expect(cAction.action).toBe("none");
+      expect(cAction.action).toBe("open-comment-editor");
 
       const rAction = handleDiffNavKey("r", navState, 3);
-      expect(rAction.action).toBe("none");
+      expect(rAction.action).toBe("open-reply-editor");
     });
   });
 

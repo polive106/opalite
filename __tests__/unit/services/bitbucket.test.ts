@@ -197,6 +197,16 @@ describe("fetchOpenPRsForAllRepos", () => {
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe("PR in repo-a");
   });
+
+  it("should throw when all repos fail", async () => {
+    fetchSpy
+      .mockResolvedValueOnce(new Response("Not Found", { status: 404 }))
+      .mockResolvedValueOnce(new Response("Not Found", { status: 404 }));
+
+    await expect(
+      fetchOpenPRsForAllRepos(mockAuth, "workspace", ["repo-a", "repo-b"])
+    ).rejects.toThrow("repo-a");
+  });
 });
 
 describe("fetchDiffStatFiles", () => {

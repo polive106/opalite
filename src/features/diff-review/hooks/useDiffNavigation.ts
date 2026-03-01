@@ -74,11 +74,11 @@ export function handleDiffNavKey(
     return { action: "request-changes" };
   }
 
-  if (keyName === "c" && state.focusPanel === "diff") {
+  if (keyName === "c") {
     return { action: "open-comment-editor" };
   }
 
-  if (keyName === "r" && state.focusPanel === "diff") {
+  if (keyName === "r") {
     return { action: "open-reply-editor" };
   }
 
