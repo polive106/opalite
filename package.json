@@ -1,0 +1,21 @@
+{
+  "name": "opalite",
+  "version": "0.1.0",
+  "description": "Terminal-based PR review and fix tool for Bitbucket Cloud",
+  "type": "module",
+  "bin": {
+    "opalite": "src/index.tsx"
+  },
+  "scripts": {
+    "start": "bun run src/index.tsx",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opentui/core": "latest",
+    "@opentui/react": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "latest"
+  }
+}
