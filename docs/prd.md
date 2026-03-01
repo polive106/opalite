@@ -81,7 +81,7 @@ opalite/
 │   ├── index.tsx                  # Entry: createCliRenderer + createRoot
 │   ├── App.tsx                    # Screen router (manages current screen state)
 │   │
-│   ├── screens/
+│   ├── screens/                   # Compose widgets + hooks — wiring layer
 │   │   ├── Dashboard.tsx          # Mode 1: PR review dashboard
 │   │   ├── DiffNav.tsx            # Mode 1: File tree + split diff review
 │   │   ├── ReviewSubmit.tsx       # Mode 1: Post review to Bitbucket
@@ -89,13 +89,19 @@ opalite/
 │   │   ├── CommentQueue.tsx       # Mode 2: Unresolved comments list
 │   │   └── AgentFix.tsx           # Mode 2: Agent diff review
 │   │
-│   ├── components/
+│   ├── widgets/                   # Pure presentational components (NO business logic)
 │   │   ├── PRRow.tsx              # Single PR list item
 │   │   ├── FileTree.tsx           # Sidebar file navigator
 │   │   ├── CommentList.tsx        # Inline comments display
 │   │   ├── CommentEditor.tsx      # Add/reply to comments
 │   │   ├── AgentStatus.tsx        # Agent progress indicator
 │   │   └── KeyBar.tsx             # Bottom keybinding help bar
+│   │
+│   ├── hooks/                     # Business logic (testable in isolation)
+│   │   ├── usePRs.ts              # Fetch + poll PRs from Bitbucket
+│   │   ├── useDiff.ts             # Fetch + parse diffs (remote, from Bitbucket)
+│   │   ├── useLocalDiff.ts        # Git diff for agent changes (local)
+│   │   └── useAgent.ts            # Agent spawn, status, and query
 │   │
 │   ├── services/
 │   │   ├── auth.ts                # API token login, validation, logout
@@ -107,12 +113,6 @@ opalite/
 │   │   ├── clipboard.ts           # Cross-platform clipboard
 │   │   └── config.ts              # YAML config loader + merger
 │   │
-│   ├── hooks/
-│   │   ├── usePRs.ts              # Fetch + poll PRs from Bitbucket
-│   │   ├── useDiff.ts             # Fetch + parse diffs (remote, from Bitbucket)
-│   │   ├── useLocalDiff.ts        # Git diff for agent changes (local)
-│   │   └── useAgent.ts            # Agent spawn, status, and query
-│   │
 │   ├── theme/
 │   │   └── tokyo-night.ts         # Default color theme
 │   │
@@ -121,6 +121,13 @@ opalite/
 │       ├── agent.ts               # Agent config types
 │       └── review.ts              # Domain types (PR, Comment, Review, etc.)
 │
+├── __tests__/                     # Feature sliced test architecture
+│   ├── unit/
+│   │   ├── hooks/                 # Hook tests — business logic in isolation
+│   │   └── services/              # Service tests — external integrations
+│   ├── widgets/                   # Widget tests — pure rendering, no logic
+│   └── integration/               # Integration tests — hook + widget wired together
+│
 ├── install.sh                     # Installer script
 ├── package.json
 ├── tsconfig.json
@@ -128,6 +135,24 @@ opalite/
 ├── .opalite.yml                   # Example shared config
 └── README.md
 ```
+
+### Testing architecture
+
+Development follows **Red-Green-Refactor** (TDD). Every feature starts with a failing test.
+
+The codebase uses **feature sliced design** to test each layer in isolation:
+
+| Layer | Location | What it contains | Tested in |
+|-------|----------|-----------------|-----------|
+| **Hooks** | `src/hooks/` | Business logic, state, data fetching | `__tests__/unit/hooks/` |
+| **Widgets** | `src/widgets/` | Pure presentational components (props in, JSX out) | `__tests__/widgets/` |
+| **Screens** | `src/screens/` | Composition of widgets + hooks | `__tests__/integration/` |
+| **Services** | `src/services/` | External integrations (API, git, auth) | `__tests__/unit/services/` |
+
+- **Widgets never contain business logic** — they receive data and callbacks via props.
+- **Hooks never render UI** — they return state and functions.
+- **Screens wire hooks to widgets** — this composition is tested in integration tests.
+- **Integration tests inject a hook into a widget** and simulate user interactions to verify UI behavior end-to-end.
 
 ---
 
@@ -531,7 +556,7 @@ Layout:
 
 ### 1.6 — KeyBar component
 
-**File: `src/components/KeyBar.tsx`**
+**File: `src/widgets/KeyBar.tsx`**
 
 A bottom bar showing available keybindings for the current screen. Accepts an array of `{ key: string, label: string }` and renders them horizontally.
 
@@ -619,7 +644,7 @@ Two-panel layout: file tree sidebar + diff viewer.
 
 ### 2.2 — Comment editor
 
-**File: `src/components/CommentEditor.tsx`**
+**File: `src/widgets/CommentEditor.tsx`**
 
 An inline text input that appears when pressing `c` on a diff line. Posts the comment to Bitbucket via API.
 
@@ -1092,7 +1117,7 @@ docs/stories/
 - `q` quits the app
 - The dashboard renders correctly at different terminal sizes
 
-**Implementation:** `src/screens/Dashboard.tsx`, `src/components/PRRow.tsx`, `src/hooks/usePRs.ts`, `src/services/bitbucket.ts`
+**Implementation:** `src/screens/Dashboard.tsx`, `src/widgets/PRRow.tsx`, `src/hooks/usePRs.ts`, `src/services/bitbucket.ts`
 
 ---
 
@@ -1111,7 +1136,7 @@ docs/stories/
 - PRs auto-refresh every 2 minutes (interval configurable in `.opalite.yml`)
 - A keybinding help bar is shown at the bottom of the screen
 
-**Implementation:** `src/components/KeyBar.tsx`, keyboard handling in `Dashboard.tsx`
+**Implementation:** `src/widgets/KeyBar.tsx`, keyboard handling in `Dashboard.tsx`
 
 ---
 
@@ -1155,7 +1180,7 @@ docs/stories/
 - `u` toggles between split (side-by-side) and unified diff view
 - `Esc` or `b` goes back to the dashboard
 
-**Implementation:** `src/screens/DiffNav.tsx`, `src/components/FileTree.tsx`, `src/hooks/useDiff.ts`
+**Implementation:** `src/screens/DiffNav.tsx`, `src/widgets/FileTree.tsx`, `src/hooks/useDiff.ts`
 
 ---
 
@@ -1172,7 +1197,7 @@ docs/stories/
 - General (non-inline) comments are shown in a separate section
 - The comment count badge in the file tree reflects per-file comment counts
 
-**Implementation:** `src/components/CommentList.tsx`, comment fetching in `src/services/bitbucket.ts`
+**Implementation:** `src/widgets/CommentList.tsx`, comment fetching in `src/services/bitbucket.ts`
 
 ---
 
@@ -1191,7 +1216,7 @@ docs/stories/
 - Replying to an existing comment is supported (navigate to comment, press `r`)
 - Posted comments include the correct `inline.path` and `inline.to` (line number) for inline comments
 
-**Implementation:** `src/components/CommentEditor.tsx`, comment posting in `src/services/bitbucket.ts`
+**Implementation:** `src/widgets/CommentEditor.tsx`, comment posting in `src/services/bitbucket.ts`
 
 ---
 
@@ -1360,7 +1385,7 @@ docs/stories/
 - The suggestion appears in the editor and can be accepted (Enter), edited, or dismissed (Esc)
 - The suggestion is concise (1-2 sentences) and actionable
 
-**Implementation:** Tab-complete in `src/components/CommentEditor.tsx`
+**Implementation:** Tab-complete in `src/widgets/CommentEditor.tsx`
 
 ---
 

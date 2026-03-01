@@ -11,8 +11,9 @@ Guide for implementing user stories from `docs/stories/` following opalite's arc
 
 1. Read the story from `docs/stories/` using the story ID
 2. Check dependencies are completed
-3. Follow layer order: Types → Services → Hooks → Components → Screens
-4. Verify it compiles and runs
+3. Follow layer order: Types → Services → Hooks → Widgets → Screens
+4. For each layer, follow **Red-Green-Refactor**: write a failing test first, make it pass, then refactor
+5. Verify all tests pass, it compiles, and runs
 
 ## Workflow
 
@@ -37,15 +38,24 @@ Before writing code:
 
 ### 3. Implementation Order
 
-Follow opalite's architecture — build from the inside out:
+Follow opalite's architecture — build from the inside out, using **Red-Green-Refactor** at each layer:
 
 ```
 1. Types      → TypeScript interfaces and types (src/types/)
-2. Services   → Business logic, API calls, git ops (src/services/)
-3. Hooks      → React hooks for data fetching & state (src/hooks/)
-4. Components → Reusable UI components (src/components/)
-5. Screens    → Full-screen views that compose components (src/screens/)
+2. Services   → External integrations (src/services/)
+                 TEST: __tests__/unit/services/ — mock external deps, test logic
+3. Hooks      → Business logic as React hooks (src/hooks/)
+                 TEST: __tests__/unit/hooks/ — test state transitions, data flow
+4. Widgets    → Pure presentational components (src/widgets/)
+                 TEST: __tests__/widgets/ — test rendering with mock props
+5. Screens    → Compose widgets + hooks (src/screens/)
+                 TEST: __tests__/integration/ — inject hook into widget, test UI behavior
 ```
+
+**At each layer, follow this cycle:**
+1. **RED** — Write a failing test that describes the behavior you want
+2. **GREEN** — Write the minimum production code to make the test pass
+3. **REFACTOR** — Clean up while keeping all tests green
 
 ### 4. Layer Guidelines
 
@@ -59,24 +69,35 @@ Follow opalite's architecture — build from the inside out:
 - `auth.ts` — Read/write `~/.config/opalite/auth.json`
 - `config.ts` — Merge `.opalite.yml` (shared) + `~/.config/opalite/config.yml` (local)
 - Handle 401 errors: show "Your API token has expired. Run `opalite login` to add a new one."
+- **Test in** `__tests__/unit/services/` — mock external deps (network, filesystem, processes)
 
 #### Hooks (`src/hooks/`)
 - Custom hooks for data fetching: return `{ data, loading, error, refresh }`
-- Use services internally, expose clean state to components
+- Use services internally, expose clean state to widgets
+- **All business logic lives here** — hooks are the brain, widgets are the body
+- **Test in** `__tests__/unit/hooks/` — mock services, assert state transitions and data flow
 
-#### Components (`src/components/`)
+#### Widgets (`src/widgets/`)
+- **Pure presentational components** — props in, JSX out, **NO business logic**
 - Use OpenTUI primitives: `<box>`, `<text>`, `<scroll-box>`, `<diff>`, `<code>`, `<select>`, `<input>`
-- Use `useKeyboard()` for keybindings — clean up on unmount
 - Use `useTerminalDimensions()` for responsive layout
+- Do NOT call hooks for data fetching — receive data and callbacks via props
+- **Test in** `__tests__/widgets/` — render with mock props, assert output
 
 #### Screens (`src/screens/`)
-- Full-screen views composed of components
+- Compose widgets + hooks — this is the wiring layer
+- Call hooks to get data, pass data and callbacks down to widgets as props
 - Receive `navigate` function from `App.tsx` for screen routing
+- Use `useKeyboard()` for screen-level keybindings — clean up on unmount
 - `App.tsx` uses `useState<Screen>` with a discriminated union for routing
+- **Test in** `__tests__/integration/` — inject hook + widget, simulate user interactions, assert UI behavior
 
 ### 5. Verification
 
 ```bash
+# Run tests
+bun test
+
 # Type check
 bunx tsc --noEmit
 
@@ -88,11 +109,14 @@ bun run src/index.tsx
 
 Story is complete when:
 
+- [ ] All tests pass (`bun test`) — unit, widget, and integration
 - [ ] All acceptance criteria pass
 - [ ] TypeScript compiles without errors (`bunx tsc --noEmit`)
 - [ ] App runs without crashing (`bun run src/index.tsx`)
 - [ ] Technical task checkboxes in the story file are checked off
 - [ ] No hardcoded credentials or tokens in code
+- [ ] Business logic is in hooks, not in widgets or screens
+- [ ] Widgets are pure presentational — no data fetching, no business logic
 
 ## Complexity Reference
 
@@ -114,14 +138,32 @@ Implementing US-5 (PR Dashboard):
 
 # 2. Check dependencies — US-1 through US-4 must be done
 
-# 3. Follow layer order:
-#    - Types: src/types/bitbucket.ts (PR interface, pagination types)
-#    - Services: src/services/bitbucket.ts (fetchOpenPRs with pagination)
-#    - Hooks: src/hooks/usePRs.ts (data fetching hook)
-#    - Components: src/components/PRRow.tsx (single PR row)
-#    - Screens: src/screens/Dashboard.tsx (full dashboard view)
+# 3. Follow layer order with Red-Green-Refactor at each step:
+#
+#    Types: src/types/bitbucket.ts (PR interface, pagination types)
+#
+#    Services: src/services/bitbucket.ts (fetchOpenPRs with pagination)
+#      RED:   write __tests__/unit/services/bitbucket.test.ts — test pagination, error handling
+#      GREEN: implement fetchOpenPRs in src/services/bitbucket.ts
+#      REFACTOR: clean up
+#
+#    Hooks: src/hooks/usePRs.ts (data fetching hook)
+#      RED:   write __tests__/unit/hooks/usePRs.test.ts — test loading/data/error states
+#      GREEN: implement usePRs in src/hooks/usePRs.ts
+#      REFACTOR: clean up
+#
+#    Widgets: src/widgets/PRRow.tsx (single PR row — pure presentational)
+#      RED:   write __tests__/widgets/PRRow.test.tsx — test renders title, author, age from props
+#      GREEN: implement PRRow in src/widgets/PRRow.tsx
+#      REFACTOR: clean up
+#
+#    Screens: src/screens/Dashboard.tsx (wire usePRs hook to PRRow widget)
+#      RED:   write __tests__/integration/Dashboard.test.tsx — test loading → list → navigation
+#      GREEN: implement Dashboard composing hook + widget
+#      REFACTOR: clean up
 
 # 4. Verify
+bun test
 bunx tsc --noEmit
 bun run src/index.tsx
 
