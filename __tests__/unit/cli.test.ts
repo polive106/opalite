@@ -4,7 +4,8 @@ import { parseArgs, getVersion, getHelpText } from "../../src/cli";
 describe("getVersion", () => {
   it("should return the version from package.json", () => {
     const version = getVersion();
-    expect(version).toBe("0.1.0");
+    const pkg = require("../../package.json");
+    expect(version).toBe(pkg.version);
   });
 });
 
