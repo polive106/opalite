@@ -31,24 +31,46 @@ bun test --watch     # run tests in watch mode (TDD)
 
 ## Project structure
 
+Feature-sliced architecture — each feature lives in its own folder with `hooks/`, `widgets/`, and `ui/` subfolders. Shared services, types, and theme remain at the top level.
+
 ```
 src/
 ├── index.tsx              # Entry point: CLI arg parsing, createCliRenderer + createRoot
 ├── App.tsx                # Screen router (useState<Screen>, navigate function)
-├── screens/               # Full-screen views — compose widgets + hooks
-├── widgets/               # Pure presentational components (NO business logic)
-├── hooks/                 # Business logic as React hooks (testable in isolation)
+├── features/              # Feature slices — each feature is a self-contained folder
+│   ├── dashboard/         # PR review dashboard feature
+│   │   ├── hooks/         # Business logic hooks for this feature
+│   │   ├── widgets/       # Pure presentational components for this feature
+│   │   └── ui/            # Full-screen views (compose widgets + hooks)
+│   └── shared/            # Shared hooks and widgets used across features
+│       ├── hooks/         # Shared business logic hooks
+│       └── widgets/       # Shared presentational components
+├── commands/              # CLI commands (login, logout, init, update)
 ├── services/              # External integrations (auth, bitbucket API, agent, git, config)
 ├── theme/                 # Color themes (tokyo-night default)
 └── types/                 # TypeScript types (bitbucket API, agent config, domain)
 
 __tests__/
 ├── unit/
-│   ├── hooks/             # Hook tests — business logic in isolation
+│   ├── commands/          # Command tests
 │   └── services/          # Service tests — external integrations
-├── widgets/               # Widget tests — pure rendering, no logic
-└── integration/           # Integration tests — inject hook + widget, test UI behavior
+└── features/              # Feature slice tests mirror src/features/
+    ├── dashboard/
+    │   ├── hooks/         # Hook tests — business logic in isolation
+    │   ├── widgets/       # Widget tests — pure rendering, no logic
+    │   └── integration/   # Integration tests — hook + widget wired together
+    └── shared/
+        ├── hooks/         # Shared hook tests
+        └── widgets/       # Shared widget tests
 ```
+
+### Feature slice rules
+
+- Each feature gets its own folder under `src/features/` (e.g., `dashboard/`, `diff-review/`, `author-mode/`)
+- Feature folders contain `hooks/`, `widgets/`, and `ui/` subfolders
+- Logic shared between two or more features goes in `src/features/shared/hooks/` or `src/features/shared/widgets/`
+- Services, types, and theme are NOT feature-specific — they stay at the top level
+- Tests mirror the feature structure under `__tests__/features/`
 
 ## OpenTUI guidelines
 
@@ -111,16 +133,17 @@ Development follows **Red-Green-Refactor** (TDD). Every feature starts with a fa
 
 ### Three testing layers
 
-#### 1. Widgets (`src/widgets/`) → Component tests (`__tests__/widgets/`)
+#### 1. Widgets (`src/features/{feature}/widgets/`) → Component tests (`__tests__/features/{feature}/widgets/`)
 
 Widgets are pure presentational components built on OpenTUI primitives. They receive data and callbacks as props — **zero business logic**. Stateless, well-defined props, isolated rendering.
 
 ```tsx
-// __tests__/widgets/PRRow.test.tsx
-it('should render PR title, author, and age', () => {
-  render(<PRRow pr={mockPR} onSelect={mockOnSelect} />)
-  expect(screen.getByText('#42 Fix auth flow')).toBeInTheDocument()
-  expect(screen.getByText('alice')).toBeInTheDocument()
+// __tests__/features/dashboard/widgets/PRRow.test.tsx
+it('should format PR data for display', () => {
+  const data = formatPRRow(mockPR, now, 24, 48)
+  expect(data.title).toBe('Fix auth flow')
+  expect(data.author).toBe('alice')
+  expect(data.ageColor).toBe('red')
 })
 ```
 
@@ -129,19 +152,16 @@ it('should render PR title, author, and age', () => {
 - Easy to mock props and verify output
 - Quick to write, quick to run
 
-#### 2. Hooks (`src/hooks/`) → Unit tests (`__tests__/unit/hooks/`)
+#### 2. Hooks (`src/features/{feature}/hooks/`) → Unit tests (`__tests__/features/{feature}/hooks/`)
 
 Hooks contain **all business logic**. Test them in isolation without any UI rendering. State management is centralized, complex operations tested without UI concerns, edge cases easy to cover.
 
 ```tsx
-// __tests__/unit/hooks/usePRs.test.ts
-it('should transition from loading to data on successful fetch', () => {
-  const { result } = renderHook(() => usePRs(mockConfig))
-  expect(result.current.loading).toBe(true)
-  await waitFor(() => {
-    expect(result.current.data).toHaveLength(3)
-    expect(result.current.loading).toBe(false)
-  })
+// __tests__/features/dashboard/hooks/usePRs.test.ts
+it('should group PRs by repo and sort alphabetically', () => {
+  const groups = groupByRepo(mockPRs)
+  expect(groups[0].repo).toBe('alpha-repo')
+  expect(groups[1].repo).toBe('beta-repo')
 })
 ```
 
@@ -150,21 +170,17 @@ it('should transition from loading to data on successful fetch', () => {
 - State transitions verified (loading → data → error)
 - Can be written before UI implementation
 
-#### 3. Screens (`src/screens/`) → Integration tests (`__tests__/integration/`)
+#### 3. UI screens (`src/features/{feature}/ui/`) → Integration tests (`__tests__/features/{feature}/integration/`)
 
 Screens compose hooks + widgets. Integration tests verify complete user flows — initial state, interactions, and resulting UI updates.
 
 ```tsx
-// __tests__/integration/Dashboard.test.tsx
-it('allows user to browse PRs and open a review', async () => {
-  render(<Dashboard navigate={mockNavigate} />)
-  // 1. Shows loading state
-  expect(screen.getByText('Loading...')).toBeInTheDocument()
-  // 2. Shows PR list after fetch
-  await waitFor(() => expect(screen.getByText('#42 Fix auth flow')).toBeInTheDocument())
-  // 3. Navigate on Enter
-  fireEvent.keyPress(screen.getByText('#42'), { key: 'Enter' })
-  expect(mockNavigate).toHaveBeenCalledWith({ name: 'diffnav', pr: expect.any(Object) })
+// __tests__/features/dashboard/integration/Dashboard.test.tsx
+it('should group PRs by repo and format rows for display', () => {
+  const groups = groupByRepo(prs)
+  expect(groups).toHaveLength(2)
+  const firstPRRow = formatPRRow(groups[0].prs[0], now, 24, 48)
+  expect(firstPRRow.title).toBe('Fix endpoint')
 })
 ```
 
@@ -177,9 +193,10 @@ it('allows user to browse PRs and open a review', async () => {
 
 | Layer | Contains | Does NOT contain |
 |-------|----------|-----------------|
-| **Hooks** (`src/hooks/`) | State management, data fetching, business logic | JSX, rendering, UI concerns |
-| **Widgets** (`src/widgets/`) | JSX, layout, display logic, props-driven rendering | `useState`, `useEffect`, data fetching, API calls |
-| **Screens** (`src/screens/`) | Composition of widgets + hooks, wiring callbacks | Complex business logic (delegate to hooks) |
+| **Hooks** (`src/features/{feature}/hooks/`) | State management, data fetching, business logic | JSX, rendering, UI concerns |
+| **Widgets** (`src/features/{feature}/widgets/`) | JSX, layout, display logic, props-driven rendering | `useState`, `useEffect`, data fetching, API calls |
+| **UI** (`src/features/{feature}/ui/`) | Composition of widgets + hooks, wiring callbacks | Complex business logic (delegate to hooks) |
+| **Shared** (`src/features/shared/`) | Hooks and widgets used across multiple features | Feature-specific logic |
 
 ### Development workflow
 
@@ -194,7 +211,7 @@ Each feature follows this order — every step has a clear testing strategy:
 Implementation order per feature:
 1. Start with **hooks** (business logic) — unit test in isolation
 2. Build **widgets** (UI components) — component test with mock props
-3. Combine in **screens** (wiring) — integration test with user flows
+3. Combine in **UI screens** (wiring) — integration test with user flows
 
 This creates a natural testing pyramid: many fast hook/widget tests, fewer integration tests. Tests serve as documentation. Layers can be developed in parallel.
 
