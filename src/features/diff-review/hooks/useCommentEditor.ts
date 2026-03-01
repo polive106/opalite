@@ -79,6 +79,23 @@ export function buildPostInput(state: CommentEditorState): PostCommentInput {
   return input;
 }
 
+export type CommentEditorKeyAction =
+  | { action: "close" }
+  | { action: "ai-suggest" }
+  | { action: "none" };
+
+export function handleCommentEditorKey(keyName: string): CommentEditorKeyAction {
+  if (keyName === "Escape") {
+    return { action: "close" };
+  }
+
+  if (keyName === "Tab") {
+    return { action: "ai-suggest" };
+  }
+
+  return { action: "none" };
+}
+
 export interface UseCommentEditorResult {
   editorState: CommentEditorState;
   openInline: (filePath: string, lineNumber: number) => void;
