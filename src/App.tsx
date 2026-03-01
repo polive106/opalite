@@ -1,6 +1,7 @@
 import { Dashboard } from "./features/dashboard/ui/Dashboard";
 import { DiffNav } from "./features/diff-review/ui/DiffNav";
 import { ReviewSubmit } from "./features/diff-review/ui/ReviewSubmit";
+import { MyPRsScreen } from "./features/author-mode/ui/MyPRs";
 import { PlaceholderScreen } from "./features/shared/widgets/PlaceholderScreen";
 import { useScreenStack } from "./features/shared/hooks/useScreenStack";
 import type { AuthData } from "./services/auth";
@@ -22,6 +23,7 @@ export interface AppProps {
   warningHours?: number;
   criticalHours?: number;
   autoRefreshInterval?: number;
+  initialScreen?: Screen;
 }
 
 export function App({
@@ -31,8 +33,9 @@ export function App({
   warningHours = 24,
   criticalHours = 48,
   autoRefreshInterval,
+  initialScreen = { name: "dashboard" },
 }: AppProps) {
-  const { current, navigate, goBack } = useScreenStack({ name: "dashboard" });
+  const { current, navigate, goBack } = useScreenStack(initialScreen);
 
   switch (current.name) {
     case "dashboard":
@@ -68,6 +71,17 @@ export function App({
         />
       );
     case "my-prs":
+      return (
+        <MyPRsScreen
+          auth={auth}
+          workspace={workspace}
+          repos={repos}
+          warningHours={warningHours}
+          criticalHours={criticalHours}
+          navigate={navigate}
+          goBack={goBack}
+        />
+      );
     case "comment-queue":
     case "agent-fix":
       return (

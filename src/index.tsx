@@ -64,6 +64,41 @@ switch (parsed.action) {
       break;
     }
 
+    if (parsed.command === "my") {
+      // Launch TUI with MyPRs screen
+      const auth = await loadAuthFile();
+      if (!auth) {
+        console.error("Failed to load auth. Run `opalite login` first.");
+        process.exit(1);
+        break;
+      }
+
+      const localConfig = await loadConfig();
+      const sharedConfig = await loadConfig(".opalite.yml");
+      const config = mergeConfigs(localConfig, sharedConfig);
+
+      if (!config.workspace || config.repos.length === 0) {
+        console.error("No workspace or repos configured. Run `opalite init` first.");
+        process.exit(1);
+        break;
+      }
+
+      const renderer = await createCliRenderer({
+        exitOnCtrlC: true,
+        useAlternateScreen: true,
+      });
+      createRoot(renderer).render(
+        <App
+          auth={auth}
+          workspace={config.workspace}
+          repos={config.repos}
+          autoRefreshInterval={config.autoRefreshInterval}
+          initialScreen={{ name: "my-prs" }}
+        />
+      );
+      break;
+    }
+
     // Subcommands will be implemented in later stories
     console.log(`Command '${parsed.command}' is not yet implemented.`);
     process.exit(0);
