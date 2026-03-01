@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { Dashboard } from "./features/dashboard/ui/Dashboard";
+import { PlaceholderScreen } from "./features/shared/widgets/PlaceholderScreen";
+import { useScreenStack } from "./features/shared/hooks/useScreenStack";
 import type { AuthData } from "./services/auth";
 import type { PR } from "./types/review";
 
@@ -28,13 +29,9 @@ export function App({
   criticalHours = 48,
   autoRefreshInterval,
 }: AppProps) {
-  const [screen, setScreen] = useState<Screen>({ name: "dashboard" });
+  const { current, navigate, goBack } = useScreenStack({ name: "dashboard" });
 
-  const navigate = (target: Screen) => {
-    setScreen(target);
-  };
-
-  switch (screen.name) {
+  switch (current.name) {
     case "dashboard":
       return (
         <Dashboard
@@ -47,17 +44,15 @@ export function App({
           navigate={navigate}
         />
       );
-    default:
-      // Other screens will be implemented in later stories
+    case "diffnav":
+    case "review-submit":
+    case "my-prs":
+    case "comment-queue":
+    case "agent-fix":
       return (
-        <Dashboard
-          auth={auth}
-          workspace={workspace}
-          repos={repos}
-          warningHours={warningHours}
-          criticalHours={criticalHours}
-          autoRefreshInterval={autoRefreshInterval}
-          navigate={navigate}
+        <PlaceholderScreen
+          screenName={current.name}
+          goBack={goBack}
         />
       );
   }
