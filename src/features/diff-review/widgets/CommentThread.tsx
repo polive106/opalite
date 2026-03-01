@@ -96,7 +96,7 @@ export function CommentList({ threads, title }: CommentListProps) {
     <box flexDirection="column" paddingY={1}>
       <box paddingX={1}>
         <text fg={theme.comment}>
-          {title} ({threads.length})
+          {`${title} (${threads.length})`}
         </text>
       </box>
       {threads.map((thread) => (

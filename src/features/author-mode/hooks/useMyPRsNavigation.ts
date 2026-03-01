@@ -32,19 +32,19 @@ export function handleMyPRsKey(
   if (myPRs.length === 0) {
     return { action: "none" };
   }
-  if (keyName === "ArrowDown" || keyName === "j") {
+  if (keyName === "down" || keyName === "j") {
     return {
       action: "select",
       index: Math.min(state.selectedIndex + 1, myPRs.length - 1),
     };
   }
-  if (keyName === "ArrowUp" || keyName === "k") {
+  if (keyName === "up" || keyName === "k") {
     return {
       action: "select",
       index: Math.max(state.selectedIndex - 1, 0),
     };
   }
-  if (keyName === "Enter") {
+  if (keyName === "return") {
     return { action: "open-comment-queue", pr: myPRs[state.selectedIndex] };
   }
   return { action: "none" };

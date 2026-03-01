@@ -17,10 +17,10 @@ export function KeyBar({ bindings }: KeyBarProps) {
   return (
     <box flexDirection="row" paddingX={1} paddingBottom={1} gap={2}>
       {bindings.map((binding) => (
-        <text key={binding.key}>
+        <box key={binding.key} flexDirection="row">
           <text fg={theme.accent}>{binding.key}</text>
-          <text fg={theme.dimmed}> {binding.label}</text>
-        </text>
+          <text fg={theme.dimmed}>{` ${binding.label}`}</text>
+        </box>
       ))}
     </box>
   );

@@ -37,7 +37,7 @@ describe("useMyPRsNavigation helpers", () => {
 
   describe("handleMyPRsKey", () => {
     it("should move selection down with ArrowDown", () => {
-      const action = helpers.handleMyPRsKey("ArrowDown", { selectedIndex: 0 }, myPRs);
+      const action = helpers.handleMyPRsKey("down", { selectedIndex: 0 }, myPRs);
       expect(action.action).toBe("select");
       if (action.action === "select") {
         expect(action.index).toBe(1);
@@ -53,7 +53,7 @@ describe("useMyPRsNavigation helpers", () => {
     });
 
     it("should move selection up with ArrowUp", () => {
-      const action = helpers.handleMyPRsKey("ArrowUp", { selectedIndex: 2 }, myPRs);
+      const action = helpers.handleMyPRsKey("up", { selectedIndex: 2 }, myPRs);
       expect(action.action).toBe("select");
       if (action.action === "select") {
         expect(action.index).toBe(1);
@@ -69,21 +69,21 @@ describe("useMyPRsNavigation helpers", () => {
     });
 
     it("should clamp at bottom when pressing down on last item", () => {
-      const action = helpers.handleMyPRsKey("ArrowDown", { selectedIndex: 2 }, myPRs);
+      const action = helpers.handleMyPRsKey("down", { selectedIndex: 2 }, myPRs);
       if (action.action === "select") {
         expect(action.index).toBe(2);
       }
     });
 
     it("should clamp at top when pressing up on first item", () => {
-      const action = helpers.handleMyPRsKey("ArrowUp", { selectedIndex: 0 }, myPRs);
+      const action = helpers.handleMyPRsKey("up", { selectedIndex: 0 }, myPRs);
       if (action.action === "select") {
         expect(action.index).toBe(0);
       }
     });
 
     it("should navigate to comment-queue on Enter", () => {
-      const action = helpers.handleMyPRsKey("Enter", { selectedIndex: 1 }, myPRs);
+      const action = helpers.handleMyPRsKey("return", { selectedIndex: 1 }, myPRs);
       expect(action.action).toBe("open-comment-queue");
       if (action.action === "open-comment-queue") {
         expect(action.pr.id).toBe(2);
@@ -112,8 +112,8 @@ describe("useMyPRsNavigation helpers", () => {
     });
 
     it("should return none for navigation keys on empty list", () => {
-      expect(helpers.handleMyPRsKey("ArrowDown", { selectedIndex: 0 }, []).action).toBe("none");
-      expect(helpers.handleMyPRsKey("Enter", { selectedIndex: 0 }, []).action).toBe("none");
+      expect(helpers.handleMyPRsKey("down", { selectedIndex: 0 }, []).action).toBe("none");
+      expect(helpers.handleMyPRsKey("return", { selectedIndex: 0 }, []).action).toBe("none");
     });
 
     it("should still allow quit and dashboard on empty list", () => {

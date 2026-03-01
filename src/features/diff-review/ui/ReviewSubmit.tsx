@@ -52,7 +52,7 @@ export function ReviewSubmit({
   }, [state.submitting, submit, goBack]);
 
   useKeyboard((e) => {
-    if (e.name === "Escape" && !state.submitting) {
+    if (e.name === "escape" && !state.submitting) {
       goBack();
     }
   });

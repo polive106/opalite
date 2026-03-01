@@ -46,7 +46,7 @@ function toDomainPR(
     linesAdded: diffStat.linesAdded,
     linesRemoved: diffStat.linesRemoved,
     url: bbPR.links.html.href,
-    participants: bbPR.participants.map((p) => ({
+    participants: (bbPR.participants ?? []).map((p) => ({
       displayName: p.user.display_name,
       nickname: p.user.nickname,
       role: p.role,
@@ -187,10 +187,21 @@ export async function fetchOpenPRsForAllRepos(
   );
 
   const allPRs: PR[] = [];
+  const errors: Error[] = [];
   for (const result of results) {
     if (result.status === "fulfilled") {
       allPRs.push(...result.value);
+    } else {
+      errors.push(
+        result.reason instanceof Error
+          ? result.reason
+          : new Error(String(result.reason))
+      );
     }
+  }
+
+  if (allPRs.length === 0 && errors.length > 0) {
+    throw errors[0];
   }
 
   return allPRs;

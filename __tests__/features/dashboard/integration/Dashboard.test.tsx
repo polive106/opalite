@@ -159,9 +159,9 @@ describe("Dashboard functional integration", () => {
   });
 
   // ─── AC: "PRs are grouped by repository, repos sorted alphabetically" ──
-  // ─── AC: "Within each repo, PRs are sorted by age (oldest first)" ──────
+  // ─── AC: "Within each repo, PRs are sorted by age (newest first)" ──────
 
-  it("should group by repo (alphabetical) and sort by age (oldest first)", async () => {
+  it("should group by repo (alphabetical) and sort by age (newest first)", async () => {
     mockBitbucketAPI({
       frontend: [
         makeBitbucketPR({ id: 10, title: "New PR", created_on: "2026-03-01T06:00:00Z" }),
@@ -179,9 +179,9 @@ describe("Dashboard functional integration", () => {
     expect(groups[0].repo).toBe("api");
     expect(groups[1].repo).toBe("frontend");
 
-    // Within api, oldest first
-    expect(groups[0].prs[0].title).toBe("Old PR");
-    expect(groups[0].prs[1].title).toBe("Recent PR");
+    // Within api, newest first
+    expect(groups[0].prs[0].title).toBe("Recent PR");
+    expect(groups[0].prs[1].title).toBe("Old PR");
   });
 
   // ─── AC: "Each PR row shows: status color, PR number, title, age, ..." ─
@@ -209,11 +209,11 @@ describe("Dashboard functional integration", () => {
     const groups = groupByRepo(prs);
     const rows = groups[0].prs.map((pr) => formatPRRow(pr, now, 24, 48));
 
-    // Oldest first after sorting
-    expect(rows[0].title).toBe("Stale PR");
-    expect(rows[0].age).toBe("2d");
-    expect(rows[0].ageColor).toBe("red");       // 60h >= 48h critical
-    expect(rows[0].commentCount).toBe(12);
+    // Newest first after sorting
+    expect(rows[0].title).toBe("Fresh PR");
+    expect(rows[0].age).toBe("6h");
+    expect(rows[0].ageColor).toBe("green");      // 6h < 24h warning
+    expect(rows[0].commentCount).toBe(0);
     expect(rows[0].filesChanged).toBe(1);
 
     expect(rows[1].title).toBe("Aging PR");
@@ -223,9 +223,9 @@ describe("Dashboard functional integration", () => {
     expect(rows[1].linesRemoved).toBe(60);
     expect(rows[1].filesChanged).toBe(2);
 
-    expect(rows[2].title).toBe("Fresh PR");
-    expect(rows[2].age).toBe("6h");
-    expect(rows[2].ageColor).toBe("green");      // 6h < 24h warning
+    expect(rows[2].title).toBe("Stale PR");
+    expect(rows[2].age).toBe("2d");
+    expect(rows[2].ageColor).toBe("red");        // 60h >= 48h critical
   });
 
   // ─── AC: "A summary line at the bottom shows: total open PRs, oldest, avg" ─
@@ -322,30 +322,30 @@ describe("Dashboard functional integration", () => {
       // 3 PRs total in the flat list
       expect(flatPRs).toHaveLength(3);
 
-      // First PR is selected by default (index 0)
+      // First PR is selected by default (index 0) — newest in api group
       const firstRow = formatPRRow(flatPRs[0], now, 24, 48);
-      expect(firstRow.title).toBe("Fix auth token refresh");
-      expect(firstRow.author).toBe("alice");
-      expect(firstRow.ageColor).toBe("red");  // 2d+ old
+      expect(firstRow.title).toBe("Add rate limiting");
+      expect(firstRow.author).toBe("charlie");
+      expect(firstRow.ageColor).toBe("yellow");
     });
 
     it("should let user navigate down through the PR list", () => {
       let state: DashboardNavigationState = { selectedIndex: 0 };
 
-      // User sees "Fix auth token refresh" selected (red, oldest in api)
+      // User sees "Add rate limiting" selected (yellow, newest in api)
       let row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
-      expect(row.title).toBe("Fix auth token refresh");
-      expect(row.ageColor).toBe("red");
+      expect(row.title).toBe("Add rate limiting");
+      expect(row.ageColor).toBe("yellow");
 
-      // User presses ↓ → "Add rate limiting" (yellow, second in api)
-      let action = handleDashboardKey("ArrowDown", state, flatPRs);
+      // User presses ↓ → "Fix auth token refresh" (red, second in api)
+      let action = handleDashboardKey("down", state, flatPRs);
       expect(action.action).toBe("select");
       if (action.action === "select") {
         state = { selectedIndex: action.index };
         row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
-        expect(row.title).toBe("Add rate limiting");
-        expect(row.author).toBe("charlie");
-        expect(row.ageColor).toBe("yellow");
+        expect(row.title).toBe("Fix auth token refresh");
+        expect(row.author).toBe("alice");
+        expect(row.ageColor).toBe("red");
       }
 
       // User presses j → "Dark mode toggle" (green, crosses into frontend group)
@@ -360,7 +360,7 @@ describe("Dashboard functional integration", () => {
       }
 
       // User presses ↓ at the bottom → stays on last item
-      action = handleDashboardKey("ArrowDown", state, flatPRs);
+      action = handleDashboardKey("down", state, flatPRs);
       if (action.action === "select") {
         expect(action.index).toBe(2); // still last
       }
@@ -373,38 +373,38 @@ describe("Dashboard functional integration", () => {
       let row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
       expect(row.title).toBe("Dark mode toggle");
 
-      // Press k → "Add rate limiting"
+      // Press k → "Fix auth token refresh"
       let action = handleDashboardKey("k", state, flatPRs);
-      if (action.action === "select") {
-        state = { selectedIndex: action.index };
-        row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
-        expect(row.title).toBe("Add rate limiting");
-      }
-
-      // Press ↑ → "Fix auth token refresh"
-      action = handleDashboardKey("ArrowUp", state, flatPRs);
       if (action.action === "select") {
         state = { selectedIndex: action.index };
         row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
         expect(row.title).toBe("Fix auth token refresh");
       }
 
+      // Press ↑ → "Add rate limiting"
+      action = handleDashboardKey("up", state, flatPRs);
+      if (action.action === "select") {
+        state = { selectedIndex: action.index };
+        row = formatPRRow(flatPRs[state.selectedIndex], now, 24, 48);
+        expect(row.title).toBe("Add rate limiting");
+      }
+
       // Press ↑ at the top → stays on first
-      action = handleDashboardKey("ArrowUp", state, flatPRs);
+      action = handleDashboardKey("up", state, flatPRs);
       if (action.action === "select") {
         expect(action.index).toBe(0);
       }
     });
 
     it("should open diff review when user presses Enter", () => {
-      // User navigated to "Add rate limiting" (index 1)
+      // User navigated to "Fix auth token refresh" (index 1)
       const state: DashboardNavigationState = { selectedIndex: 1 };
-      const action = handleDashboardKey("Enter", state, flatPRs);
+      const action = handleDashboardKey("return", state, flatPRs);
 
       expect(action.action).toBe("navigate");
       if (action.action === "navigate") {
-        expect(action.pr.id).toBe(102);
-        expect(action.pr.title).toBe("Add rate limiting");
+        expect(action.pr.id).toBe(101);
+        expect(action.pr.title).toBe("Fix auth token refresh");
         expect(action.pr.repo).toBe("api");
       }
     });
@@ -474,8 +474,8 @@ describe("Dashboard functional integration", () => {
 
       // Navigation on empty list does nothing
       const state: DashboardNavigationState = { selectedIndex: 0 };
-      expect(handleDashboardKey("ArrowDown", state, []).action).toBe("none");
-      expect(handleDashboardKey("Enter", state, []).action).toBe("none");
+      expect(handleDashboardKey("down", state, []).action).toBe("none");
+      expect(handleDashboardKey("return", state, []).action).toBe("none");
       // But quit still works
       expect(handleDashboardKey("q", state, []).action).toBe("quit");
     });

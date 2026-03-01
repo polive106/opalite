@@ -35,7 +35,7 @@ describe("handleDashboardKey", () => {
 
   it("should move down on ArrowDown", () => {
     const state: DashboardNavigationState = { selectedIndex: 0 };
-    const result = handleDashboardKey("ArrowDown", state, prs);
+    const result = handleDashboardKey("down", state, prs);
     expect(result.action).toBe("select");
     if (result.action === "select") {
       expect(result.index).toBe(1);
@@ -53,7 +53,7 @@ describe("handleDashboardKey", () => {
 
   it("should not go below the last item", () => {
     const state: DashboardNavigationState = { selectedIndex: 2 };
-    const result = handleDashboardKey("ArrowDown", state, prs);
+    const result = handleDashboardKey("down", state, prs);
     expect(result.action).toBe("select");
     if (result.action === "select") {
       expect(result.index).toBe(2);
@@ -62,7 +62,7 @@ describe("handleDashboardKey", () => {
 
   it("should move up on ArrowUp", () => {
     const state: DashboardNavigationState = { selectedIndex: 2 };
-    const result = handleDashboardKey("ArrowUp", state, prs);
+    const result = handleDashboardKey("up", state, prs);
     expect(result.action).toBe("select");
     if (result.action === "select") {
       expect(result.index).toBe(1);
@@ -80,7 +80,7 @@ describe("handleDashboardKey", () => {
 
   it("should not go above 0", () => {
     const state: DashboardNavigationState = { selectedIndex: 0 };
-    const result = handleDashboardKey("ArrowUp", state, prs);
+    const result = handleDashboardKey("up", state, prs);
     expect(result.action).toBe("select");
     if (result.action === "select") {
       expect(result.index).toBe(0);
@@ -89,7 +89,7 @@ describe("handleDashboardKey", () => {
 
   it("should return navigate on Enter", () => {
     const state: DashboardNavigationState = { selectedIndex: 1 };
-    const result = handleDashboardKey("Enter", state, prs);
+    const result = handleDashboardKey("return", state, prs);
     expect(result.action).toBe("navigate");
     if (result.action === "navigate") {
       expect(result.pr.id).toBe(2);
@@ -122,7 +122,7 @@ describe("handleDashboardKey", () => {
 
   it("should return none for navigation keys on empty list", () => {
     const state: DashboardNavigationState = { selectedIndex: 0 };
-    const result = handleDashboardKey("Enter", state, []);
+    const result = handleDashboardKey("return", state, []);
     expect(result.action).toBe("none");
   });
 });

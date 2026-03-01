@@ -11,12 +11,13 @@ type LoginResult =
   | { success: false; error: string };
 
 export function getLoginInstructions(): string {
-  return `To log in, you'll need a Bitbucket API token.
+  return `To log in, you'll need a Bitbucket API token with scopes.
 
 1. Go to: https://id.atlassian.com/manage-profile/security/api-tokens
 2. Click "Create API token"
-3. Give it a label (e.g. "opalite") and create it
-4. Copy the token — it starts with ATAT
+3. Give it a label (e.g. "opalite")
+4. Select scopes: read:user:bitbucket, read:workspace:bitbucket, read:repository:bitbucket, write:repository:bitbucket, read:pullrequest:bitbucket, write:pullrequest:bitbucket
+5. Create it and copy the token — it starts with ATAT
 `;
 }
 
@@ -62,6 +63,23 @@ export async function validateAndLogin(
     };
   }
 
+  if (response.status === 403) {
+    const body = (await response.json()) as {
+      error?: {
+        detail?: { required?: string[]; granted?: string[] };
+      };
+    };
+    const required = body.error?.detail?.required ?? [];
+    const granted = body.error?.detail?.granted ?? [];
+    const missing = required.filter((s) => !granted.includes(s));
+    return {
+      success: false,
+      error: missing.length > 0
+        ? `Your API token is missing required scopes: ${missing.join(", ")}.\nCreate a new token with all required scopes and run \`opalite login\` again.`
+        : `Your API token lacks required permissions (HTTP 403).`,
+    };
+  }
+
   if (!response.ok) {
     return {
       success: false,
@@ -102,7 +120,7 @@ export async function runLogin(
     process.exit(1);
   }
 
-  process.stdout.write("API token: ");
+  process.stdout.write("API token (hidden): ");
   setStdinEcho(false);
   const token = (await readLine()).trim();
   setStdinEcho(true);
@@ -142,6 +160,7 @@ function readLine(): Promise<string> {
 
 function setStdinEcho(enabled: boolean): void {
   if (process.stdin.isTTY) {
-    process.stdin.setRawMode(!enabled);
+    const flag = enabled ? "echo" : "-echo";
+    Bun.spawnSync(["stty", flag], { stdin: "inherit" });
   }
 }

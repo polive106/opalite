@@ -28,7 +28,7 @@ export function handleDiffNavKey(
   state: DiffNavState,
   fileCount: number
 ): DiffNavKeyAction {
-  if (keyName === "Escape" || keyName === "b") {
+  if (keyName === "escape" || keyName === "b") {
     return { action: "back" };
   }
 
@@ -36,7 +36,7 @@ export function handleDiffNavKey(
     return { action: "quit" };
   }
 
-  if (keyName === "Tab") {
+  if (keyName === "tab") {
     return {
       action: "toggle-focus",
       panel: state.focusPanel === "tree" ? "diff" : "tree",
@@ -74,16 +74,16 @@ export function handleDiffNavKey(
     return { action: "request-changes" };
   }
 
-  if (keyName === "c" && state.focusPanel === "diff") {
+  if (keyName === "c") {
     return { action: "open-comment-editor" };
   }
 
-  if (keyName === "r" && state.focusPanel === "diff") {
+  if (keyName === "r") {
     return { action: "open-reply-editor" };
   }
 
-  const isDown = keyName === "ArrowDown" || keyName === "j";
-  const isUp = keyName === "ArrowUp" || keyName === "k";
+  const isDown = keyName === "down" || keyName === "j";
+  const isUp = keyName === "up" || keyName === "k";
 
   if (isDown || isUp) {
     if (fileCount === 0) return { action: "none" };

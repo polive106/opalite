@@ -85,12 +85,12 @@ export function FileTree({ files, selectedIndex, focused, height, commentCounts 
             <text fg={theme.dimmed}>{entry.directory}</text>
             <text fg={theme.fg}>{entry.filename}</text>
             {entry.commentCount > 0 && (
-              <text fg={theme.comment}> [{entry.commentCount}]</text>
+              <text fg={theme.comment}>{` [${entry.commentCount}]`}</text>
             )}
             <box flexGrow={1} />
-            <text fg={theme.green}>+{entry.linesAdded}</text>
+            <text fg={theme.green}>{`+${entry.linesAdded}`}</text>
             <text fg={theme.dimmed}> </text>
-            <text fg={theme.red}>-{entry.linesRemoved}</text>
+            <text fg={theme.red}>{`-${entry.linesRemoved}`}</text>
           </box>
         );
       })}

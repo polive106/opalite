@@ -32,7 +32,7 @@ export function DiffHeader({ data }: DiffHeaderProps) {
   return (
     <box flexDirection="column" paddingX={1} paddingY={1}>
       <box flexDirection="row">
-        <text fg={theme.accent}>#{data.prNumber}</text>
+        <text fg={theme.accent}>{`#${data.prNumber}`}</text>
         <text fg={theme.fg}> {data.title}</text>
         <box flexGrow={1} />
         <text fg={theme.dimmed}>{data.age}</text>

@@ -105,7 +105,7 @@ export function MyPRsScreen({
       <box flexDirection="row" paddingX={1}>
         <text fg={theme.fg}>Your open PRs across {workspace}</text>
         <box flexGrow={1} />
-        <text fg={theme.dimmed}>{myPRs.length} PRs</text>
+        <text fg={theme.dimmed}>{`${myPRs.length} PRs`}</text>
       </box>
 
       <box paddingX={1}>
@@ -150,7 +150,7 @@ export function MyPRsScreen({
       </box>
       <box flexDirection="row" paddingX={1}>
         <text fg={theme.fg}>
-          {myPRs.length} open PR{myPRs.length !== 1 ? "s" : ""}
+          {`${myPRs.length} open PR${myPRs.length !== 1 ? "s" : ""}`}
         </text>
       </box>
 

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import type { Screen } from "../../../App";
 
-const BACK_KEYS = new Set(["Escape", "b"]);
+const BACK_KEYS = new Set(["escape", "b"]);
 
 export function pushScreen(stack: Screen[], screen: Screen): Screen[] {
   return [...stack, screen];

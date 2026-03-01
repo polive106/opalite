@@ -261,7 +261,7 @@ describe("DiffNav functional integration", () => {
       }
 
       // User presses ArrowDown → selects config.ts
-      action = handleDiffNavKey("ArrowDown", state, files.length);
+      action = handleDiffNavKey("down", state, files.length);
       if (action.action === "select-file") {
         state = { ...state, selectedFileIndex: action.index };
         const entry = formatFileTreeEntry(files[state.selectedFileIndex]);
@@ -286,7 +286,7 @@ describe("DiffNav functional integration", () => {
       expect(state.focusPanel).toBe("tree");
 
       // Press Tab → diff focused
-      let action = handleDiffNavKey("Tab", state, 3);
+      let action = handleDiffNavKey("tab", state, 3);
       expect(action.action).toBe("toggle-focus");
       if (action.action === "toggle-focus") {
         state = { ...state, focusPanel: action.panel };
@@ -294,7 +294,7 @@ describe("DiffNav functional integration", () => {
       }
 
       // Press Tab again → tree focused
-      action = handleDiffNavKey("Tab", state, 3);
+      action = handleDiffNavKey("tab", state, 3);
       if (action.action === "toggle-focus") {
         state = { ...state, focusPanel: action.panel };
         expect(state.focusPanel).toBe("tree");
@@ -306,7 +306,7 @@ describe("DiffNav functional integration", () => {
     it("should scroll diff when focus is on diff panel", () => {
       state = { ...state, focusPanel: "diff" };
 
-      const downAction = handleDiffNavKey("ArrowDown", state, 3);
+      const downAction = handleDiffNavKey("down", state, 3);
       expect(downAction.action).toBe("scroll-diff");
       if (downAction.action === "scroll-diff") {
         expect(downAction.direction).toBe("down");
@@ -368,7 +368,7 @@ describe("DiffNav functional integration", () => {
     // ─── AC: "Esc or b goes back to the dashboard" ─────────────────────
 
     it("should go back on Escape or b", () => {
-      const escAction = handleDiffNavKey("Escape", state, 3);
+      const escAction = handleDiffNavKey("escape", state, 3);
       expect(escAction.action).toBe("back");
 
       const bAction = handleDiffNavKey("b", state, 3);
@@ -381,7 +381,7 @@ describe("DiffNav functional integration", () => {
   it("should show DiffNav key bindings", () => {
     const diffNavBindings: KeyBinding[] = [
       { key: "↑↓", label: "navigate" },
-      { key: "Tab", label: "switch panel" },
+      { key: "tab", label: "switch panel" },
       { key: "n/N", label: "next/prev file" },
       { key: "u", label: "split/unified" },
       { key: "b", label: "back" },
@@ -390,7 +390,7 @@ describe("DiffNav functional integration", () => {
 
     const formatted = formatKeyBindings(diffNavBindings);
     expect(formatted).toHaveLength(6);
-    expect(formatted[1].key).toBe("Tab");
+    expect(formatted[1].key).toBe("tab");
     expect(formatted[1].label).toBe("switch panel");
     expect(formatted[3].key).toBe("u");
     expect(formatted[3].label).toBe("split/unified");
@@ -426,10 +426,10 @@ describe("DiffNav functional integration", () => {
         selectedFileIndex: 0,
         viewMode: "split",
       };
-      expect(handleDiffNavKey("ArrowDown", state, 0).action).toBe("none");
+      expect(handleDiffNavKey("down", state, 0).action).toBe("none");
       expect(handleDiffNavKey("n", state, 0).action).toBe("none");
       // But back still works
-      expect(handleDiffNavKey("Escape", state, 0).action).toBe("back");
+      expect(handleDiffNavKey("escape", state, 0).action).toBe("back");
     });
 
     it("should handle API failure gracefully", async () => {

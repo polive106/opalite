@@ -276,7 +276,7 @@ describe("MyPRs functional integration", () => {
       }
 
       // Press ArrowDown at bottom -> stays
-      action = handleMyPRsKey("ArrowDown", state, myPRs);
+      action = handleMyPRsKey("down", state, myPRs);
       if (action.action === "select") {
         expect(action.index).toBe(1); // still last
       }
@@ -284,7 +284,7 @@ describe("MyPRs functional integration", () => {
 
     it("should open comment queue when user presses Enter", () => {
       const state: MyPRsNavigationState = { selectedIndex: 0 };
-      const action = handleMyPRsKey("Enter", state, myPRs);
+      const action = handleMyPRsKey("return", state, myPRs);
 
       expect(action.action).toBe("open-comment-queue");
       if (action.action === "open-comment-queue") {
@@ -354,8 +354,8 @@ describe("MyPRs functional integration", () => {
       expect(myPRs).toHaveLength(0);
 
       // Navigation on empty list
-      expect(handleMyPRsKey("ArrowDown", { selectedIndex: 0 }, []).action).toBe("none");
-      expect(handleMyPRsKey("Enter", { selectedIndex: 0 }, []).action).toBe("none");
+      expect(handleMyPRsKey("down", { selectedIndex: 0 }, []).action).toBe("none");
+      expect(handleMyPRsKey("return", { selectedIndex: 0 }, []).action).toBe("none");
       // But d and q still work
       expect(handleMyPRsKey("d", { selectedIndex: 0 }, []).action).toBe("dashboard");
       expect(handleMyPRsKey("q", { selectedIndex: 0 }, []).action).toBe("quit");

@@ -66,7 +66,7 @@ describe("usePRs helpers", () => {
   });
 
   describe("sortPRsByAge", () => {
-    it("should sort PRs by createdOn date, oldest first", () => {
+    it("should sort PRs by createdOn date, newest first", () => {
       const prs: PR[] = [
         makePR({ id: 1, createdOn: new Date("2026-03-01T10:00:00Z") }),
         makePR({ id: 2, createdOn: new Date("2026-02-25T10:00:00Z") }),
@@ -75,9 +75,9 @@ describe("usePRs helpers", () => {
 
       const sorted = helpers.sortPRsByAge(prs);
 
-      expect(sorted[0].id).toBe(2);
+      expect(sorted[0].id).toBe(1);
       expect(sorted[1].id).toBe(3);
-      expect(sorted[2].id).toBe(1);
+      expect(sorted[2].id).toBe(2);
     });
   });
 

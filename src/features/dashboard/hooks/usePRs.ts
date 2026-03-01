@@ -26,7 +26,7 @@ export function groupByRepo(prs: PR[]): RepoGroup[] {
 
 export function sortPRsByAge(prs: PR[]): PR[] {
   return [...prs].sort(
-    (a, b) => a.createdOn.getTime() - b.createdOn.getTime()
+    (a, b) => b.createdOn.getTime() - a.createdOn.getTime()
   );
 }
 

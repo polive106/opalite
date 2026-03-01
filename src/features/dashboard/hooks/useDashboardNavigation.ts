@@ -32,19 +32,19 @@ export function handleDashboardKey(
   if (flatPRs.length === 0) {
     return { action: "none" };
   }
-  if (keyName === "ArrowDown" || keyName === "j") {
+  if (keyName === "down" || keyName === "j") {
     return {
       action: "select",
       index: Math.min(state.selectedIndex + 1, flatPRs.length - 1),
     };
   }
-  if (keyName === "ArrowUp" || keyName === "k") {
+  if (keyName === "up" || keyName === "k") {
     return {
       action: "select",
       index: Math.max(state.selectedIndex - 1, 0),
     };
   }
-  if (keyName === "Enter") {
+  if (keyName === "return") {
     return { action: "navigate", pr: flatPRs[state.selectedIndex] };
   }
   return { action: "none" };

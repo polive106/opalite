@@ -158,14 +158,14 @@ describe("handleCommentEditorKey", () => {
   // ─── Tab returns ai-suggest action (stub for Phase 5, US-19) ───
 
   it("should return ai-suggest action on Tab", () => {
-    const action = handleCommentEditorKey("Tab");
+    const action = handleCommentEditorKey("tab");
     expect(action.action).toBe("ai-suggest");
   });
 
   // ─── Escape closes editor ───
 
   it("should return close action on Escape", () => {
-    const action = handleCommentEditorKey("Escape");
+    const action = handleCommentEditorKey("escape");
     expect(action.action).toBe("close");
   });
 
@@ -177,7 +177,7 @@ describe("handleCommentEditorKey", () => {
   });
 
   it("should return none for Enter (handled by onSubmit callback)", () => {
-    const action = handleCommentEditorKey("Enter");
+    const action = handleCommentEditorKey("return");
     expect(action.action).toBe("none");
   });
 });

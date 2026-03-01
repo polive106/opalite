@@ -20,7 +20,7 @@ describe("handleDiffNavKey", () => {
 
   it("should toggle focus from tree to diff on Tab", () => {
     const state = makeState({ focusPanel: "tree" });
-    const action = handleDiffNavKey("Tab", state, FILE_COUNT);
+    const action = handleDiffNavKey("tab", state, FILE_COUNT);
 
     expect(action.action).toBe("toggle-focus");
     if (action.action === "toggle-focus") {
@@ -30,7 +30,7 @@ describe("handleDiffNavKey", () => {
 
   it("should toggle focus from diff to tree on Tab", () => {
     const state = makeState({ focusPanel: "diff" });
-    const action = handleDiffNavKey("Tab", state, FILE_COUNT);
+    const action = handleDiffNavKey("tab", state, FILE_COUNT);
 
     expect(action.action).toBe("toggle-focus");
     if (action.action === "toggle-focus") {
@@ -42,7 +42,7 @@ describe("handleDiffNavKey", () => {
 
   it("should select next file when pressing ArrowDown with tree focus", () => {
     const state = makeState({ focusPanel: "tree", selectedFileIndex: 0 });
-    const action = handleDiffNavKey("ArrowDown", state, FILE_COUNT);
+    const action = handleDiffNavKey("down", state, FILE_COUNT);
 
     expect(action.action).toBe("select-file");
     if (action.action === "select-file") {
@@ -52,7 +52,7 @@ describe("handleDiffNavKey", () => {
 
   it("should select previous file when pressing ArrowUp with tree focus", () => {
     const state = makeState({ focusPanel: "tree", selectedFileIndex: 2 });
-    const action = handleDiffNavKey("ArrowUp", state, FILE_COUNT);
+    const action = handleDiffNavKey("up", state, FILE_COUNT);
 
     expect(action.action).toBe("select-file");
     if (action.action === "select-file") {
@@ -62,7 +62,7 @@ describe("handleDiffNavKey", () => {
 
   it("should clamp file selection at bottom boundary", () => {
     const state = makeState({ focusPanel: "tree", selectedFileIndex: 4 });
-    const action = handleDiffNavKey("ArrowDown", state, FILE_COUNT);
+    const action = handleDiffNavKey("down", state, FILE_COUNT);
 
     expect(action.action).toBe("select-file");
     if (action.action === "select-file") {
@@ -72,7 +72,7 @@ describe("handleDiffNavKey", () => {
 
   it("should clamp file selection at top boundary", () => {
     const state = makeState({ focusPanel: "tree", selectedFileIndex: 0 });
-    const action = handleDiffNavKey("ArrowUp", state, FILE_COUNT);
+    const action = handleDiffNavKey("up", state, FILE_COUNT);
 
     expect(action.action).toBe("select-file");
     if (action.action === "select-file") {
@@ -99,13 +99,13 @@ describe("handleDiffNavKey", () => {
   it("should scroll diff when focus is on diff panel", () => {
     const state = makeState({ focusPanel: "diff" });
 
-    const downAction = handleDiffNavKey("ArrowDown", state, FILE_COUNT);
+    const downAction = handleDiffNavKey("down", state, FILE_COUNT);
     expect(downAction.action).toBe("scroll-diff");
     if (downAction.action === "scroll-diff") {
       expect(downAction.direction).toBe("down");
     }
 
-    const upAction = handleDiffNavKey("ArrowUp", state, FILE_COUNT);
+    const upAction = handleDiffNavKey("up", state, FILE_COUNT);
     expect(upAction.action).toBe("scroll-diff");
     if (upAction.action === "scroll-diff") {
       expect(upAction.direction).toBe("up");
@@ -178,7 +178,7 @@ describe("handleDiffNavKey", () => {
 
   it("should go back on Escape", () => {
     const state = makeState();
-    const action = handleDiffNavKey("Escape", state, FILE_COUNT);
+    const action = handleDiffNavKey("escape", state, FILE_COUNT);
     expect(action.action).toBe("back");
   });
 
@@ -197,11 +197,11 @@ describe("handleDiffNavKey", () => {
     expect(action.action).toBe("open-comment-editor");
   });
 
-  it("should return none for c when tree panel is focused", () => {
+  it("should open comment editor on c when tree panel is focused", () => {
     const state = makeState({ focusPanel: "tree" });
     const action = handleDiffNavKey("c", state, FILE_COUNT);
 
-    expect(action.action).toBe("none");
+    expect(action.action).toBe("open-comment-editor");
   });
 
   // ─── r opens reply editor ───
@@ -213,11 +213,11 @@ describe("handleDiffNavKey", () => {
     expect(action.action).toBe("open-reply-editor");
   });
 
-  it("should return none for r when tree panel is focused", () => {
+  it("should open reply editor on r when tree panel is focused", () => {
     const state = makeState({ focusPanel: "tree" });
     const action = handleDiffNavKey("r", state, FILE_COUNT);
 
-    expect(action.action).toBe("none");
+    expect(action.action).toBe("open-reply-editor");
   });
 
   // ─── a approves ───
@@ -248,7 +248,7 @@ describe("handleDiffNavKey", () => {
 
   it("should handle empty file list", () => {
     const state = makeState({ selectedFileIndex: 0 });
-    const action = handleDiffNavKey("ArrowDown", state, 0);
+    const action = handleDiffNavKey("down", state, 0);
     expect(action.action).toBe("none");
   });
 
