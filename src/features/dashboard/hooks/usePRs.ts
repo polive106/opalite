@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+
+export const DEFAULT_AUTO_REFRESH_INTERVAL = 120;
 import { fetchOpenPRsForAllRepos } from "../../../services/bitbucket";
 import type { AuthData } from "../../../services/auth";
 import type { PR, RepoGroup } from "../../../types/review";
@@ -100,7 +102,8 @@ export interface UsePRsResult {
 export function usePRs(
   auth: AuthData,
   workspace: string,
-  repos: string[]
+  repos: string[],
+  autoRefreshInterval: number = DEFAULT_AUTO_REFRESH_INTERVAL
 ): UsePRsResult {
   const [prs, setPrs] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,10 +136,19 @@ export function usePRs(
   useEffect(() => {
     mountedRef.current = true;
     fetchPRs();
+
+    if (autoRefreshInterval > 0) {
+      const intervalId = setInterval(fetchPRs, autoRefreshInterval * 1000);
+      return () => {
+        mountedRef.current = false;
+        clearInterval(intervalId);
+      };
+    }
+
     return () => {
       mountedRef.current = false;
     };
-  }, [fetchPRs]);
+  }, [fetchPRs, autoRefreshInterval]);
 
   const now = new Date();
   const groups = groupByRepo(prs);

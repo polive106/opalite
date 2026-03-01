@@ -147,6 +147,12 @@ describe("usePRs helpers", () => {
     });
   });
 
+  describe("DEFAULT_AUTO_REFRESH_INTERVAL", () => {
+    it("should default to 120 seconds (2 minutes)", () => {
+      expect(helpers.DEFAULT_AUTO_REFRESH_INTERVAL).toBe(120);
+    });
+  });
+
   describe("formatLastFetch", () => {
     it("should format recent fetch as 'just now'", () => {
       const now = new Date("2026-03-01T12:00:30Z");

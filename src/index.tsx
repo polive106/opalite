@@ -115,6 +115,7 @@ switch (parsed.action) {
         auth={auth}
         workspace={config.workspace}
         repos={config.repos}
+        autoRefreshInterval={config.autoRefreshInterval}
       />
     );
     break;

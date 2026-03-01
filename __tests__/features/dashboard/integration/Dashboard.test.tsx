@@ -28,6 +28,7 @@ import {
   groupByRepo,
   computeSummary,
   formatLastFetch,
+  DEFAULT_AUTO_REFRESH_INTERVAL,
 } from "../../../../src/features/dashboard/hooks/usePRs";
 import { formatPRRow } from "../../../../src/features/dashboard/widgets/PRRow";
 import {
@@ -37,6 +38,7 @@ import {
 import type { AuthData } from "../../../../src/services/auth";
 import type { PR } from "../../../../src/types/review";
 import { theme } from "../../../../src/theme/tokyo-night";
+import { formatKeyBindings, type KeyBinding } from "../../../../src/features/shared/widgets/KeyBar";
 
 // ─── Test fixtures: raw Bitbucket API responses ───────────────────────────
 
@@ -413,6 +415,12 @@ describe("Dashboard functional integration", () => {
       expect(action.action).toBe("refresh");
     });
 
+    it("should navigate to my-prs when user presses m", () => {
+      const state: DashboardNavigationState = { selectedIndex: 0 };
+      const action = handleDashboardKey("m", state, flatPRs);
+      expect(action.action).toBe("my-prs");
+    });
+
     it("should quit when user presses q", () => {
       const state: DashboardNavigationState = { selectedIndex: 0 };
       const action = handleDashboardKey("q", state, flatPRs);
@@ -424,6 +432,30 @@ describe("Dashboard functional integration", () => {
       expect(summary.total).toBe(3);
       expect(summary.oldestAge).toBe("2d");
     });
+  });
+
+  // ─── AC: "A keybinding help bar is shown at the bottom of the screen" ──
+
+  it("should show key bindings including navigate, review, my-prs, refresh, quit", () => {
+    const dashboardBindings: KeyBinding[] = [
+      { key: "↑↓", label: "navigate" },
+      { key: "⏎", label: "review" },
+      { key: "m", label: "my PRs" },
+      { key: "r", label: "refresh" },
+      { key: "q", label: "quit" },
+    ];
+
+    const formatted = formatKeyBindings(dashboardBindings);
+    expect(formatted).toHaveLength(5);
+    expect(formatted[0].key).toBe("↑↓");
+    expect(formatted[2].key).toBe("m");
+    expect(formatted[2].label).toBe("my PRs");
+  });
+
+  // ─── AC: "PRs auto-refresh every 2 minutes (interval configurable)" ────
+
+  it("should have a default auto-refresh interval of 2 minutes", () => {
+    expect(DEFAULT_AUTO_REFRESH_INTERVAL).toBe(120);
   });
 
   // ─── Edge cases ─────────────────────────────────────────────────────────
