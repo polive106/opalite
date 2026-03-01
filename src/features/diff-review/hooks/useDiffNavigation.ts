@@ -17,6 +17,8 @@ export type DiffNavKeyAction =
   | { action: "toggle-view-mode"; mode: ViewMode }
   | { action: "open-comment-editor" }
   | { action: "open-reply-editor" }
+  | { action: "approve" }
+  | { action: "request-changes" }
   | { action: "back" }
   | { action: "quit" }
   | { action: "none" };
@@ -64,6 +66,14 @@ export function handleDiffNavKey(
     };
   }
 
+  if (keyName === "a") {
+    return { action: "approve" };
+  }
+
+  if (keyName === "x") {
+    return { action: "request-changes" };
+  }
+
   if (keyName === "c" && state.focusPanel === "diff") {
     return { action: "open-comment-editor" };
   }
@@ -95,6 +105,8 @@ export interface DiffNavCallbacks {
   goBack: () => void;
   onOpenCommentEditor?: () => void;
   onOpenReplyEditor?: () => void;
+  onApprove?: () => void;
+  onRequestChanges?: () => void;
 }
 
 export function useDiffNavigation(
@@ -130,6 +142,12 @@ export function useDiffNavigation(
         break;
       case "open-reply-editor":
         callbacks.onOpenReplyEditor?.();
+        break;
+      case "approve":
+        callbacks.onApprove?.();
+        break;
+      case "request-changes":
+        callbacks.onRequestChanges?.();
         break;
       case "back":
         callbacks.goBack();

@@ -220,11 +220,27 @@ describe("handleDiffNavKey", () => {
     expect(action.action).toBe("none");
   });
 
+  // ─── a approves ───
+
+  it("should return approve action on a", () => {
+    const state = makeState();
+    const action = handleDiffNavKey("a", state, FILE_COUNT);
+    expect(action.action).toBe("approve");
+  });
+
+  // ─── x requests changes ───
+
+  it("should return request-changes action on x", () => {
+    const state = makeState();
+    const action = handleDiffNavKey("x", state, FILE_COUNT);
+    expect(action.action).toBe("request-changes");
+  });
+
   // ─── Unknown keys ───
 
   it("should return none for unrecognized keys", () => {
     const state = makeState();
-    const action = handleDiffNavKey("x", state, FILE_COUNT);
+    const action = handleDiffNavKey("z", state, FILE_COUNT);
     expect(action.action).toBe("none");
   });
 

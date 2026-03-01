@@ -127,7 +127,7 @@ describe("Screen routing integration", () => {
     let stack: Screen[] = [
       { name: "dashboard" },
       { name: "diffnav", pr },
-      { name: "review-submit", pr },
+      { name: "review-submit", pr, initialAction: "approve" },
     ];
 
     // Back from review-submit → diffnav

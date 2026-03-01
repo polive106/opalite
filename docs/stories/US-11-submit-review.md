@@ -16,13 +16,13 @@
 
 ## Technical Tasks
 
-- [ ] Add approve endpoint to `src/services/bitbucket.ts`: `POST /repositories/{workspace}/{repo}/pullrequests/{id}/approve`
-- [ ] Add request-changes endpoint to `src/services/bitbucket.ts`: `POST /repositories/{workspace}/{repo}/pullrequests/{id}/request-changes`
-- [ ] Add unapprove endpoint: `DELETE /repositories/{workspace}/{repo}/pullrequests/{id}/approve`
-- [ ] Create `src/screens/ReviewSubmit.tsx` with confirmation dialog using `<select>` (Comment / Request Changes / Approve) and optional general comment via `<input>`
-- [ ] Implement `a` keybinding in DiffNav to show approval confirmation
-- [ ] Implement `x` keybinding in DiffNav to show request-changes confirmation
-- [ ] After submission, navigate back to dashboard
+- [x] Add approve endpoint to `src/services/bitbucket.ts`: `POST /repositories/{workspace}/{repo}/pullrequests/{id}/approve`
+- [x] Add request-changes endpoint to `src/services/bitbucket.ts`: `POST /repositories/{workspace}/{repo}/pullrequests/{id}/request-changes`
+- [x] Add unapprove endpoint: `DELETE /repositories/{workspace}/{repo}/pullrequests/{id}/approve`
+- [x] Create `src/features/diff-review/ui/ReviewSubmit.tsx` with confirmation dialog using `<select>` (Comment / Request Changes / Approve) and optional general comment via `<input>`
+- [x] Implement `a` keybinding in DiffNav to show approval confirmation
+- [x] Implement `x` keybinding in DiffNav to show request-changes confirmation
+- [x] After submission, navigate back to dashboard
 
 ## Files to Create/Modify
 
