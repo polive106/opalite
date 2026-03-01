@@ -46,7 +46,7 @@ describe("pushScreen", () => {
     const pr = makePR();
     let stack: Screen[] = [{ name: "dashboard" }];
     stack = pushScreen(stack, { name: "diffnav", pr });
-    stack = pushScreen(stack, { name: "review-submit", pr });
+    stack = pushScreen(stack, { name: "review-submit", pr, initialAction: "approve" });
 
     expect(stack).toHaveLength(3);
     expect(stack[0].name).toBe("dashboard");
@@ -88,7 +88,7 @@ describe("popScreen", () => {
     let stack: Screen[] = [
       { name: "dashboard" },
       { name: "diffnav", pr },
-      { name: "review-submit", pr },
+      { name: "review-submit", pr, initialAction: "approve" },
     ];
 
     stack = popScreen(stack);

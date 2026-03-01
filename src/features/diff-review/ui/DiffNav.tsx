@@ -19,6 +19,7 @@ import {
 import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
 import type { AuthData } from "../../../services/auth";
 import type { PR } from "../../../types/review";
+import type { Screen } from "../../../App";
 import type { FocusPanel, ViewMode } from "../hooks/useDiffNavigation";
 
 const DIFFNAV_KEY_BINDINGS: KeyBinding[] = [
@@ -27,6 +28,8 @@ const DIFFNAV_KEY_BINDINGS: KeyBinding[] = [
   { key: "n/N", label: "next/prev file" },
   { key: "c", label: "comment" },
   { key: "r", label: "reply" },
+  { key: "a", label: "approve" },
+  { key: "x", label: "request changes" },
   { key: "u", label: "split/unified" },
   { key: "b", label: "back" },
   { key: "q", label: "quit" },
@@ -40,9 +43,10 @@ export interface DiffNavProps {
   workspace: string;
   pr: PR;
   goBack: () => void;
+  navigate?: (screen: Screen) => void;
 }
 
-export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
+export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps) {
   const { width, height } = useTerminalDimensions();
   const { files, fileDiffs, loading, error } = useDiff(
     auth,
@@ -108,6 +112,12 @@ export function DiffNav({ auth, workspace, pr, goBack }: DiffNavProps) {
         }
         break;
       }
+      case "approve":
+        navigate?.({ name: "review-submit", pr, initialAction: "approve" });
+        break;
+      case "request-changes":
+        navigate?.({ name: "review-submit", pr, initialAction: "request-changes" });
+        break;
       case "back":
         goBack();
         break;

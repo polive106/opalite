@@ -252,6 +252,48 @@ export async function postPRComment(
   return toDomainComment(data);
 }
 
+export async function approvePR(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number
+): Promise<void> {
+  const endpoint = `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/approve`;
+  const response = await bbFetch(endpoint, auth, { method: "POST" });
+
+  if (!response.ok) {
+    throw new Error(`Failed to approve PR (HTTP ${response.status}).`);
+  }
+}
+
+export async function requestChangesPR(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number
+): Promise<void> {
+  const endpoint = `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/request-changes`;
+  const response = await bbFetch(endpoint, auth, { method: "POST" });
+
+  if (!response.ok) {
+    throw new Error(`Failed to request changes on PR (HTTP ${response.status}).`);
+  }
+}
+
+export async function unapprovePR(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number
+): Promise<void> {
+  const endpoint = `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/approve`;
+  const response = await bbFetch(endpoint, auth, { method: "DELETE" });
+
+  if (!response.ok) {
+    throw new Error(`Failed to unapprove PR (HTTP ${response.status}).`);
+  }
+}
+
 export async function fetchPRComments(
   auth: AuthData,
   workspace: string,

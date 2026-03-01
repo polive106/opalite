@@ -6,6 +6,9 @@ import {
   fetchPRDiff,
   fetchPRComments,
   postPRComment,
+  approvePR,
+  requestChangesPR,
+  unapprovePR,
   type DiffStatEntry,
 } from "../../../src/services/bitbucket";
 import type { AuthData } from "../../../src/services/auth";
@@ -592,6 +595,144 @@ describe("postPRComment", () => {
       await postPRComment(mockAuth, "workspace", "repo", 42, {
         content: "Test",
       });
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        "Your API token has expired. Run `opalite login` to add a new one."
+      );
+    }
+  });
+});
+
+describe("approvePR", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should POST to the approve endpoint", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("{}", { status: 200 }));
+
+    await approvePR(mockAuth, "workspace", "repo", 42);
+
+    const [url, options] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/repositories/workspace/repo/pullrequests/42/approve");
+    expect(options.method).toBe("POST");
+  });
+
+  it("should throw on non-ok response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Forbidden", { status: 403 }));
+
+    try {
+      await approvePR(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toContain("Failed to approve PR");
+    }
+  });
+
+  it("should throw on 401 response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Unauthorized", { status: 401 }));
+
+    try {
+      await approvePR(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        "Your API token has expired. Run `opalite login` to add a new one."
+      );
+    }
+  });
+});
+
+describe("requestChangesPR", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should POST to the request-changes endpoint", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("{}", { status: 200 }));
+
+    await requestChangesPR(mockAuth, "workspace", "repo", 42);
+
+    const [url, options] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/repositories/workspace/repo/pullrequests/42/request-changes");
+    expect(options.method).toBe("POST");
+  });
+
+  it("should throw on non-ok response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Forbidden", { status: 403 }));
+
+    try {
+      await requestChangesPR(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toContain("Failed to request changes");
+    }
+  });
+
+  it("should throw on 401 response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Unauthorized", { status: 401 }));
+
+    try {
+      await requestChangesPR(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        "Your API token has expired. Run `opalite login` to add a new one."
+      );
+    }
+  });
+});
+
+describe("unapprovePR", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should DELETE to the approve endpoint", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("", { status: 204 }));
+
+    await unapprovePR(mockAuth, "workspace", "repo", 42);
+
+    const [url, options] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/repositories/workspace/repo/pullrequests/42/approve");
+    expect(options.method).toBe("DELETE");
+  });
+
+  it("should throw on non-ok response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Forbidden", { status: 403 }));
+
+    try {
+      await unapprovePR(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toContain("Failed to unapprove PR");
+    }
+  });
+
+  it("should throw on 401 response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Unauthorized", { status: 401 }));
+
+    try {
+      await unapprovePR(mockAuth, "workspace", "repo", 42);
       expect(true).toBe(false);
     } catch (error) {
       expect((error as Error).message).toBe(
