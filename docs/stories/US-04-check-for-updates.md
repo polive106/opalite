@@ -15,13 +15,13 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/services/update.ts` with `checkForUpdate()` function
-- [ ] Implement version check against GitHub releases API (`GET /repos/{org}/opalite/releases/latest`) with 2s timeout via `AbortSignal.timeout(2000)`
-- [ ] Compare latest version with current version from `package.json`
-- [ ] Print update notice before TUI renders if a newer version exists
-- [ ] Implement `opalite update` subcommand: re-run install script via `Bun.spawn()`
-- [ ] Add `update` subcommand to CLI entry point (`src/index.tsx`)
-- [ ] Ensure update check is non-blocking (does not delay startup)
+- [x] Create `src/services/update.ts` with `checkForUpdate()` function
+- [x] Implement version check against GitHub releases API (`GET /repos/{org}/opalite/releases/latest`) with 2s timeout via `AbortSignal.timeout(2000)`
+- [x] Compare latest version with current version from `package.json`
+- [x] Print update notice before TUI renders if a newer version exists
+- [x] Implement `opalite update` subcommand: re-run install script via `Bun.spawn()`
+- [x] Add `update` subcommand to CLI entry point (`src/index.tsx`)
+- [x] Ensure update check is non-blocking (does not delay startup)
 
 ## Files to Create/Modify
 
