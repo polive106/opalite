@@ -75,6 +75,28 @@ __tests__/
 - **Basic HTTP auth** — `Authorization: Basic base64(email:token)` for all Bitbucket API calls
 - **Pagination** — Bitbucket uses `next` URL in responses. Always implement auto-pagination.
 - **Error handling** — expired tokens return 401, show "Your API token has expired. Run `opalite login` to add a new one."
+- **Changesets required** — every commit must include a changeset file. See the Changesets section below.
+
+## Changesets (versioning)
+
+Every commit that changes production code must include a changeset file. A **PreToolUse hook** blocks `git commit` if none exists.
+
+**To create a changeset**, add a markdown file to `.changeset/` (any descriptive name, e.g., `.changeset/add-login-command.md`):
+
+```md
+---
+"opalite": patch
+---
+
+Add login command with Basic auth support.
+```
+
+**Bump types:**
+- `patch` — bug fixes, small tweaks
+- `minor` — new features, new user stories
+- `major` — breaking changes
+
+After merging, `npx changeset version` consumes changeset files and bumps `package.json` version.
 
 ## Architecture patterns
 

@@ -92,7 +92,22 @@ Follow opalite's architecture — build from the inside out, using **Red-Green-R
 - `App.tsx` uses `useState<Screen>` with a discriminated union for routing
 - **Test in** `__tests__/integration/` — inject hook + widget, simulate user interactions, assert UI behavior
 
-### 5. Verification
+### 5. Create a Changeset
+
+Before committing, create a changeset file to document the version bump:
+
+```bash
+# Create .changeset/<descriptive-name>.md with:
+---
+"opalite": minor   # minor for features, patch for fixes, major for breaking
+---
+
+Brief description of what the story adds or changes.
+```
+
+Name the file after the story (e.g., `.changeset/us-05-pr-dashboard.md`).
+
+### 6. Verification
 
 ```bash
 # Run tests
@@ -105,7 +120,7 @@ bunx tsc --noEmit
 bun run src/index.tsx
 ```
 
-### 6. Definition of Done
+### 7. Definition of Done
 
 Story is complete when:
 

@@ -123,6 +123,24 @@ Use this checklist before committing or when reviewing code.
 - [ ] Local overrides shared (merge order correct)
 - [ ] Missing config files handled gracefully (sensible defaults)
 
+## Changesets (Version Bump)
+
+Before committing, ensure a changeset file exists to document the version change:
+
+- [ ] Changeset file created in `.changeset/` (e.g., `.changeset/add-login-flow.md`)
+- [ ] Bump type is correct: `patch` (fixes), `minor` (features), `major` (breaking)
+- [ ] Description clearly explains what changed
+
+**Format:**
+
+```md
+---
+"opalite": patch
+---
+
+Description of the change.
+```
+
 ## Final Steps
 
 ```bash
