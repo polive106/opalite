@@ -9,6 +9,7 @@ import {
   setEditorSubmitting,
   setEditorError,
   buildPostInput,
+  handleCommentEditorKey,
 } from "../../../../src/features/diff-review/hooks/useCommentEditor";
 
 describe("CommentEditor state management", () => {
@@ -150,5 +151,33 @@ describe("CommentEditor state management", () => {
     expect(input.content).toBe("Overall LGTM");
     expect(input.inline).toBeUndefined();
     expect(input.parentId).toBeUndefined();
+  });
+});
+
+describe("handleCommentEditorKey", () => {
+  // ─── Tab returns ai-suggest action (stub for Phase 5, US-19) ───
+
+  it("should return ai-suggest action on Tab", () => {
+    const action = handleCommentEditorKey("Tab");
+    expect(action.action).toBe("ai-suggest");
+  });
+
+  // ─── Escape closes editor ───
+
+  it("should return close action on Escape", () => {
+    const action = handleCommentEditorKey("Escape");
+    expect(action.action).toBe("close");
+  });
+
+  // ─── Other keys are ignored (handled by input component) ───
+
+  it("should return none for unrecognized keys", () => {
+    const action = handleCommentEditorKey("a");
+    expect(action.action).toBe("none");
+  });
+
+  it("should return none for Enter (handled by onSubmit callback)", () => {
+    const action = handleCommentEditorKey("Enter");
+    expect(action.action).toBe("none");
   });
 });

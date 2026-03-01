@@ -24,6 +24,7 @@ import {
   setEditorSubmitting,
   setEditorError,
   buildPostInput,
+  handleCommentEditorKey,
   type CommentEditorState,
 } from "../../../../src/features/diff-review/hooks/useCommentEditor";
 import {
@@ -361,6 +362,33 @@ describe("US-10 Leave comments functional integration", () => {
           "Your API token has expired. Run `opalite login` to add a new one."
         );
       }
+    });
+  });
+
+  // ─── AC: "Tab in editor returns ai-suggest stub (Phase 5, US-19)" ────────
+
+  describe("Tab handler stub for AI comment suggestion", () => {
+    it("should return ai-suggest action when Tab is pressed in editor", () => {
+      // Step 1: User opens comment editor
+      const editorState = openInlineEditor("src/auth.ts", 45);
+      expect(editorState.isOpen).toBe(true);
+
+      // Step 2: User presses Tab while editor is open → ai-suggest action (stub)
+      const action = handleCommentEditorKey("Tab");
+      expect(action.action).toBe("ai-suggest");
+
+      // Step 3: Since this is a stub, the editor state does not change
+      // (AI suggestion will be implemented in Phase 5, US-19)
+      expect(editorState.text).toBe("");
+      expect(editorState.isOpen).toBe(true);
+    });
+
+    it("should handle Escape in editor via handleCommentEditorKey", () => {
+      const editorState = openInlineEditor("src/auth.ts", 45);
+      expect(editorState.isOpen).toBe(true);
+
+      const action = handleCommentEditorKey("Escape");
+      expect(action.action).toBe("close");
     });
   });
 
