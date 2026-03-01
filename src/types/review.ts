@@ -31,3 +31,20 @@ export interface RepoGroup {
   repo: string;
   prs: PR[];
 }
+
+export interface Comment {
+  id: number;
+  author: {
+    displayName: string;
+    nickname: string;
+  };
+  content: string;
+  createdOn: Date;
+  isInline: boolean;
+  filePath?: string;
+  lineNumber?: number;
+  resolved: boolean;
+  deleted: boolean;
+  parentId?: number;
+  replies: Comment[];
+}

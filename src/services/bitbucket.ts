@@ -1,6 +1,6 @@
 import { bbFetch, type AuthData } from "./auth";
-import type { BitbucketPR, PaginatedResponse } from "../types/bitbucket";
-import type { PR } from "../types/review";
+import type { BitbucketPR, BitbucketComment, PaginatedResponse } from "../types/bitbucket";
+import type { PR, Comment } from "../types/review";
 
 export interface DiffStatEntry {
   lines_added: number;
@@ -194,4 +194,59 @@ export async function fetchOpenPRsForAllRepos(
   }
 
   return allPRs;
+}
+
+function toDomainComment(bb: BitbucketComment): Comment {
+  return {
+    id: bb.id,
+    author: {
+      displayName: bb.user.display_name,
+      nickname: bb.user.nickname,
+    },
+    content: bb.content.raw,
+    createdOn: new Date(bb.created_on),
+    isInline: bb.inline !== undefined,
+    filePath: bb.inline?.path,
+    lineNumber: bb.inline?.to ?? bb.inline?.from,
+    resolved: bb.resolved ?? false,
+    deleted: bb.deleted,
+    parentId: bb.parent?.id,
+    replies: [],
+  };
+}
+
+export async function fetchPRComments(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number
+): Promise<Comment[]> {
+  try {
+    const allComments: BitbucketComment[] = [];
+    let endpoint: string | undefined =
+      `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/comments`;
+
+    while (endpoint) {
+      const response = await bbFetch(endpoint, auth);
+      if (!response.ok) {
+        return [];
+      }
+      const data = (await response.json()) as PaginatedResponse<BitbucketComment>;
+      allComments.push(...data.values);
+      endpoint = data.next;
+      if (endpoint && endpoint.startsWith("http")) {
+        const parsed = new URL(endpoint);
+        endpoint = parsed.pathname + parsed.search;
+      }
+    }
+
+    return allComments
+      .filter((c) => !c.deleted)
+      .map(toDomainComment);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("opalite login")) {
+      throw err;
+    }
+    return [];
+  }
 }
