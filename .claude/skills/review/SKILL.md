@@ -10,6 +10,7 @@ Use this checklist before committing or when reviewing code.
 ## Quick Check (Every Commit)
 
 ```
+[ ] All tests pass (bun test)
 [ ] No secrets in code (API keys, passwords, tokens)
 [ ] No console.log/print statements left behind
 [ ] No commented-out code blocks
@@ -77,16 +78,43 @@ Use this checklist before committing or when reviewing code.
 - [ ] Return `{ data, loading, error, refresh }` pattern
 - [ ] Loading and error states handled
 - [ ] No direct DOM/terminal manipulation — hooks return state
+- [ ] All business logic lives in hooks, not in widgets or screens
 
-### Screens & Components
-- [ ] Screen receives `navigate` function for routing
-- [ ] Components are reusable — no hardcoded screen-specific logic
+### Widgets (`src/widgets/`)
+- [ ] Pure presentational — props in, JSX out
+- [ ] No `useState`, `useEffect`, or data fetching logic
+- [ ] No direct hook calls for business logic — receive data via props
+- [ ] Reusable — no hardcoded screen-specific logic
 - [ ] Theme colors from `src/theme/`, not hardcoded hex values
+
+### Screens (`src/screens/`)
+- [ ] Screen receives `navigate` function for routing
+- [ ] Screens compose widgets + hooks — wiring layer only
+- [ ] Business logic delegated to hooks, not implemented in-screen
 
 ### TypeScript
 - [ ] Strict mode — no `any` types
 - [ ] No unnecessary `as` casts
 - [ ] Discriminated unions for screen routing
+
+## Testing (Red-Green-Refactor)
+
+### TDD Discipline
+- [ ] New production code was driven by a failing test
+- [ ] Tests written before or alongside production code — not after
+- [ ] Each test covers one behavior, not implementation details
+
+### Feature Sliced Design
+- [ ] Hook unit tests (`__tests__/unit/hooks/`) — business logic tested in isolation, services mocked
+- [ ] Widget tests (`__tests__/widgets/`) — rendering tested with mock props, no hooks involved
+- [ ] Integration tests (`__tests__/integration/`) — hook + widget wired together, user interactions simulated
+- [ ] Service tests (`__tests__/unit/services/`) — external integrations tested, deps mocked
+
+### Layer Separation
+- [ ] Hooks contain no JSX or rendering logic
+- [ ] Widgets contain no business logic, data fetching, or side effects
+- [ ] Screens only compose hooks and widgets — no complex logic of their own
+- [ ] Test files mirror the source structure (`src/hooks/usePRs.ts` → `__tests__/unit/hooks/usePRs.test.ts`)
 
 ## Config
 
@@ -98,6 +126,9 @@ Use this checklist before committing or when reviewing code.
 ## Final Steps
 
 ```bash
+# Run all tests
+bun test
+
 # Type check
 bunx tsc --noEmit
 
