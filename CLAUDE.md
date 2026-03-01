@@ -66,7 +66,7 @@ __tests__/
 
 - **Red-Green-Refactor** — all development follows TDD. Write a failing test first (red), make it pass with minimal code (green), then refactor. No production code without a failing test first.
 - **Bun only** — use `Bun.spawn()` for process spawning, `bun` for package management
-- **Always run `bun install`** — after adding or changing dependencies, always run `bun install` to ensure they are installed
+- **Use `bun add` for dependencies** — never manually edit `package.json` to add dependencies. Use `bun add <pkg>` (or `bun add -d <pkg>` for dev deps) so Bun manages versions and the lockfile
 - **Strict TypeScript** — no `any`, no `as` casts unless absolutely necessary
 - **Minimal changes** — don't refactor unrelated code, don't add extra features
 - **No API keys in code** — AI features use the agent CLI the user has installed
