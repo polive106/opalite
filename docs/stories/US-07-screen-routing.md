@@ -16,13 +16,13 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/App.tsx` with screen routing using `useState<Screen>` and a discriminated union type
-- [ ] Define `Screen` type with all screens: `dashboard`, `diffnav`, `review-submit`, `my-prs`, `comment-queue`, `agent-fix`
-- [ ] Implement `navigate` function that pushes screens onto a stack
-- [ ] Implement back navigation (`Esc`/`b`) that pops the screen stack
-- [ ] Wire up `q` on dashboard to quit the app
-- [ ] Pass `navigate` function to all screen components
-- [ ] Update `src/index.tsx` to render `<App />` as the root component
+- [x] Create `src/App.tsx` with screen routing using `useState<Screen>` and a discriminated union type
+- [x] Define `Screen` type with all screens: `dashboard`, `diffnav`, `review-submit`, `my-prs`, `comment-queue`, `agent-fix`
+- [x] Implement `navigate` function that pushes screens onto a stack
+- [x] Implement back navigation (`Esc`/`b`) that pops the screen stack
+- [x] Wire up `q` on dashboard to quit the app
+- [x] Pass `navigate` function to all screen components
+- [x] Update `src/index.tsx` to render `<App />` as the root component
 
 ## Files to Create/Modify
 
