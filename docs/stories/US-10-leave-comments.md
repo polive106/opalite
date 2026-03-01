@@ -18,12 +18,12 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/components/CommentEditor.tsx` component: inline text input using OpenTUI's `<input>`
-- [ ] Add comment posting to `src/services/bitbucket.ts`: `POST .../comments` with `content.raw`, `inline.path`, `inline.to`
-- [ ] Implement `c` keybinding in DiffNav to open CommentEditor at the current diff line
-- [ ] Implement `Enter` to submit comment and `Esc` to cancel
-- [ ] After posting, refresh comments and display the new comment inline immediately
-- [ ] Implement reply support: `r` on an existing comment opens CommentEditor with `parent.id` set
+- [x] Create `src/features/diff-review/widgets/CommentEditor.tsx` component: inline text input using OpenTUI's `<input>`
+- [x] Add comment posting to `src/services/bitbucket.ts`: `POST .../comments` with `content.raw`, `inline.path`, `inline.to`
+- [x] Implement `c` keybinding in DiffNav to open CommentEditor at the current diff line
+- [x] Implement `Enter` to submit comment and `Esc` to cancel
+- [x] After posting, refresh comments and display the new comment inline immediately
+- [x] Implement reply support: `r` on an existing comment opens CommentEditor with `parent.id` set
 - [ ] Add `Tab` handler stub for AI comment suggestion (Phase 5, US-19)
 
 ## Files to Create/Modify

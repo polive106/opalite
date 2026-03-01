@@ -70,6 +70,7 @@ export interface UseCommentsResult {
   fileCommentCounts: Record<string, number>;
   loading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
 }
 
 export function useComments(
@@ -114,5 +115,5 @@ export function useComments(
   const grouped = groupCommentsByFile(threads);
   const fileCommentCounts = getFileCommentCounts(comments);
 
-  return { comments, threads, grouped, fileCommentCounts, loading, error };
+  return { comments, threads, grouped, fileCommentCounts, loading, error, refresh: fetchData };
 }

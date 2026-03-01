@@ -15,6 +15,8 @@ export type DiffNavKeyAction =
   | { action: "select-file"; index: number }
   | { action: "scroll-diff"; direction: "up" | "down" }
   | { action: "toggle-view-mode"; mode: ViewMode }
+  | { action: "open-comment-editor" }
+  | { action: "open-reply-editor" }
   | { action: "back" }
   | { action: "quit" }
   | { action: "none" };
@@ -62,6 +64,14 @@ export function handleDiffNavKey(
     };
   }
 
+  if (keyName === "c" && state.focusPanel === "diff") {
+    return { action: "open-comment-editor" };
+  }
+
+  if (keyName === "r" && state.focusPanel === "diff") {
+    return { action: "open-reply-editor" };
+  }
+
   const isDown = keyName === "ArrowDown" || keyName === "j";
   const isUp = keyName === "ArrowUp" || keyName === "k";
 
@@ -81,15 +91,24 @@ export function handleDiffNavKey(
   return { action: "none" };
 }
 
+export interface DiffNavCallbacks {
+  goBack: () => void;
+  onOpenCommentEditor?: () => void;
+  onOpenReplyEditor?: () => void;
+}
+
 export function useDiffNavigation(
   fileCount: number,
-  goBack: () => void
+  callbacks: DiffNavCallbacks,
+  editorOpen: boolean = false
 ) {
   const [focusPanel, setFocusPanel] = useState<FocusPanel>("tree");
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("split");
 
   useKeyboard((e) => {
+    if (editorOpen) return;
+
     const result = handleDiffNavKey(
       e.name,
       { focusPanel, selectedFileIndex, viewMode },
@@ -106,8 +125,14 @@ export function useDiffNavigation(
       case "toggle-view-mode":
         setViewMode(result.mode);
         break;
+      case "open-comment-editor":
+        callbacks.onOpenCommentEditor?.();
+        break;
+      case "open-reply-editor":
+        callbacks.onOpenReplyEditor?.();
+        break;
       case "back":
-        goBack();
+        callbacks.goBack();
         break;
       case "quit":
         process.exit(0);

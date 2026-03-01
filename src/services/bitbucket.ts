@@ -1,4 +1,4 @@
-import { bbFetch, type AuthData } from "./auth";
+import { bbFetch, type AuthData, type BbFetchOptions } from "./auth";
 import type { BitbucketPR, BitbucketComment, PaginatedResponse } from "../types/bitbucket";
 import type { PR, Comment } from "../types/review";
 
@@ -213,6 +213,43 @@ function toDomainComment(bb: BitbucketComment): Comment {
     parentId: bb.parent?.id,
     replies: [],
   };
+}
+
+export interface PostCommentInput {
+  content: string;
+  inline?: { path: string; to: number };
+  parentId?: number;
+}
+
+export async function postPRComment(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number,
+  input: PostCommentInput
+): Promise<Comment> {
+  const endpoint = `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/comments`;
+
+  const body: Record<string, unknown> = {
+    content: { raw: input.content },
+  };
+
+  if (input.inline) {
+    body.inline = { path: input.inline.path, to: input.inline.to };
+  }
+
+  if (input.parentId !== undefined) {
+    body.parent = { id: input.parentId };
+  }
+
+  const response = await bbFetch(endpoint, auth, { method: "POST", body });
+
+  if (!response.ok) {
+    throw new Error(`Failed to post comment (HTTP ${response.status}).`);
+  }
+
+  const data = (await response.json()) as BitbucketComment;
+  return toDomainComment(data);
 }
 
 export async function fetchPRComments(
