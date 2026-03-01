@@ -8,6 +8,21 @@ export interface DiffStatEntry {
   status: string;
 }
 
+export interface DiffStatFile {
+  path: string;
+  status: string;
+  linesAdded: number;
+  linesRemoved: number;
+}
+
+interface DiffStatRawEntry {
+  lines_added: number;
+  lines_removed: number;
+  status: string;
+  old: { path: string } | null;
+  new: { path: string } | null;
+}
+
 function toDomainPR(
   bbPR: BitbucketPR,
   repoSlug: string,
@@ -99,6 +114,63 @@ export async function fetchOpenPRs(
   );
 
   return prs;
+}
+
+export async function fetchDiffStatFiles(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number
+): Promise<DiffStatFile[]> {
+  try {
+    const files: DiffStatFile[] = [];
+    let endpoint: string | undefined =
+      `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/diffstat`;
+
+    while (endpoint) {
+      const response = await bbFetch(endpoint, auth);
+      if (!response.ok) {
+        return [];
+      }
+      const data = (await response.json()) as PaginatedResponse<DiffStatRawEntry>;
+      for (const entry of data.values) {
+        const path = entry.new?.path ?? entry.old?.path ?? "unknown";
+        files.push({
+          path,
+          status: entry.status,
+          linesAdded: entry.lines_added,
+          linesRemoved: entry.lines_removed,
+        });
+      }
+      endpoint = data.next;
+      if (endpoint && endpoint.startsWith("http")) {
+        const parsed = new URL(endpoint);
+        endpoint = parsed.pathname + parsed.search;
+      }
+    }
+
+    return files;
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchPRDiff(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number
+): Promise<string> {
+  try {
+    const endpoint = `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/diff`;
+    const response = await bbFetch(endpoint, auth);
+    if (!response.ok) {
+      return "";
+    }
+    return await response.text();
+  } catch {
+    return "";
+  }
 }
 
 export async function fetchOpenPRsForAllRepos(

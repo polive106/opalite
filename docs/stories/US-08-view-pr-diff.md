@@ -22,23 +22,29 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/hooks/useDiff.ts` hook: fetch diff from Bitbucket API, parse unified diff into file-level chunks, return `{ files, loading, error }`
-- [ ] Create `src/components/FileTree.tsx` component: sidebar listing changed files with +/- counts, highlight selected file
-- [ ] Create `src/screens/DiffNav.tsx` with two-panel layout (file tree + diff viewer)
-- [ ] Implement PR header showing title, author, source/dest branches, and age
-- [ ] Use OpenTUI's `<diff>` component for rendering diffs with `viewMode="split"` and `viewMode="unified"`
-- [ ] Implement `Tab` to toggle focus between file tree and diff viewer
-- [ ] Implement `j`/`k`/`Up`/`Down` for scrolling the focused panel
-- [ ] Implement `n`/`N` for next/previous file navigation
-- [ ] Implement `u` to toggle split/unified diff view
-- [ ] Implement `Esc`/`b` for back navigation
-- [ ] Add KeyBar with DiffNav-specific bindings
+- [x] Create `src/features/diff-review/hooks/useDiff.ts` hook: fetch diff from Bitbucket API, parse unified diff into file-level chunks, return `{ files, fileDiffs, loading, error }`
+- [x] Create `src/features/diff-review/widgets/FileTree.tsx` component: sidebar listing changed files with +/- counts, highlight selected file
+- [x] Create `src/features/diff-review/ui/DiffNav.tsx` with two-panel layout (file tree + diff viewer)
+- [x] Implement PR header showing title, author, source/dest branches, and age (`src/features/diff-review/widgets/DiffHeader.tsx`)
+- [x] Use OpenTUI's `<diff>` component for rendering diffs with `view="split"` and `view="unified"`
+- [x] Implement `Tab` to toggle focus between file tree and diff viewer
+- [x] Implement `j`/`k`/`Up`/`Down` for scrolling the focused panel
+- [x] Implement `n`/`N` for next/previous file navigation
+- [x] Implement `u` to toggle split/unified diff view
+- [x] Implement `Esc`/`b` for back navigation
+- [x] Add KeyBar with DiffNav-specific bindings
+- [x] Add `fetchDiffStatFiles` and `fetchPRDiff` to `src/services/bitbucket.ts`
+- [x] Wire DiffNav into `src/App.tsx` screen router
 
 ## Files to Create/Modify
 
-- `src/hooks/useDiff.ts` (create)
-- `src/components/FileTree.tsx` (create)
-- `src/screens/DiffNav.tsx` (create)
+- `src/services/bitbucket.ts` (modify — add `fetchDiffStatFiles`, `fetchPRDiff`)
+- `src/features/diff-review/hooks/useDiff.ts` (create)
+- `src/features/diff-review/hooks/useDiffNavigation.ts` (create)
+- `src/features/diff-review/widgets/FileTree.tsx` (create)
+- `src/features/diff-review/widgets/DiffHeader.tsx` (create)
+- `src/features/diff-review/ui/DiffNav.tsx` (create)
+- `src/App.tsx` (modify — wire DiffNav screen)
 
 ## Dependencies
 
