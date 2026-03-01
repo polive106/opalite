@@ -6,6 +6,11 @@ import { runLogout } from "./commands/logout";
 import { runInit } from "./commands/init";
 import { runUpdate, getUpdateMessage } from "./commands/update";
 import { checkAuth } from "./commands/authGuard";
+import { loadAuthFile } from "./services/auth";
+import { loadConfig, mergeConfigs } from "./services/config";
+import { createCliRenderer } from "@opentui/core";
+import { createRoot } from "@opentui/react";
+import { App } from "./App";
 
 const args = process.argv.slice(2);
 const parsed = parseArgs(args);
@@ -82,9 +87,36 @@ switch (parsed.action) {
       console.log(notice);
     }
 
-    // TUI dashboard will be implemented in US-5+
-    console.log("opalite — review dashboard coming soon.");
-    process.exit(0);
+    // Load auth and config for TUI dashboard
+    const auth = await loadAuthFile();
+    if (!auth) {
+      console.error("Failed to load auth. Run `opalite login` first.");
+      process.exit(1);
+      break;
+    }
+
+    const localConfig = await loadConfig();
+    const sharedConfig = await loadConfig(".opalite.yml");
+    const config = mergeConfigs(localConfig, sharedConfig);
+
+    if (!config.workspace || config.repos.length === 0) {
+      console.error("No workspace or repos configured. Run `opalite init` first.");
+      process.exit(1);
+      break;
+    }
+
+    // Launch TUI dashboard
+    const renderer = await createCliRenderer({
+      exitOnCtrlC: true,
+      useAlternateScreen: true,
+    });
+    createRoot(renderer).render(
+      <App
+        auth={auth}
+        workspace={config.workspace}
+        repos={config.repos}
+      />
+    );
     break;
   }
 }

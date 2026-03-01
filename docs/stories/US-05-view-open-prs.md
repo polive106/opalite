@@ -21,27 +21,29 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/types/bitbucket.ts` with `BitbucketPR`, `BitbucketComment`, and paginated response types
-- [ ] Create `src/types/review.ts` with domain types (`PR`, `Comment`, `Review`, etc.)
-- [ ] Create `src/services/bitbucket.ts` with API client: list open PRs, auto-pagination, parallel fetching across repos
-- [ ] Create `src/hooks/usePRs.ts` hook: fetch PRs from all repos, return `{ prs, loading, error, refresh }`
-- [ ] Create `src/theme/tokyo-night.ts` with default color theme
-- [ ] Create `src/components/PRRow.tsx` component: render a single PR with status color, title, age, stats
-- [ ] Create `src/screens/Dashboard.tsx`: full-screen dashboard with PR list grouped by repo
-- [ ] Implement age color-coding based on configurable warning/critical thresholds
-- [ ] Implement summary line (total PRs, oldest age, average age)
-- [ ] Implement "last fetch" timestamp display
-- [ ] Ensure responsive layout using `useTerminalDimensions()`
+- [x] Create `src/types/bitbucket.ts` with `BitbucketPR`, `BitbucketComment`, and paginated response types
+- [x] Create `src/types/review.ts` with domain types (`PR`, `Comment`, `Review`, etc.)
+- [x] Create `src/services/bitbucket.ts` with API client: list open PRs, auto-pagination, parallel fetching across repos
+- [x] Create `src/features/dashboard/hooks/usePRs.ts` hook: fetch PRs from all repos, return `{ prs, loading, error, refresh }`
+- [x] Create `src/theme/tokyo-night.ts` with default color theme
+- [x] Create `src/features/dashboard/widgets/PRRow.tsx` component: render a single PR with status color, title, age, stats
+- [x] Create `src/features/dashboard/ui/Dashboard.tsx`: full-screen dashboard with PR list grouped by repo
+- [x] Implement age color-coding based on configurable warning/critical thresholds
+- [x] Implement summary line (total PRs, oldest age, average age)
+- [x] Implement "last fetch" timestamp display
+- [x] Ensure responsive layout using `useTerminalDimensions()`
 
 ## Files to Create/Modify
 
 - `src/types/bitbucket.ts` (create)
 - `src/types/review.ts` (create)
 - `src/services/bitbucket.ts` (create)
-- `src/hooks/usePRs.ts` (create)
+- `src/features/dashboard/hooks/usePRs.ts` (create)
 - `src/theme/tokyo-night.ts` (create)
-- `src/components/PRRow.tsx` (create)
-- `src/screens/Dashboard.tsx` (create)
+- `src/features/dashboard/widgets/PRRow.tsx` (create)
+- `src/features/dashboard/ui/Dashboard.tsx` (create)
+- `src/App.tsx` (create)
+- `src/index.tsx` (modify)
 
 ## Dependencies
 

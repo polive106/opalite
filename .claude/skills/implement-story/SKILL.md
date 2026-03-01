@@ -5,13 +5,13 @@ description: Workflow for implementing a user story. Use when starting work on a
 
 # Implement Story
 
-Guide for implementing user stories from `docs/stories/` following opalite's architecture.
+Guide for implementing user stories from `docs/stories/` following opalite's feature-sliced architecture.
 
 ## Quick Start
 
 1. Read the story from `docs/stories/` using the story ID
 2. Check dependencies are completed
-3. Follow layer order: Types → Services → Hooks → Widgets → Screens
+3. Follow layer order: Types → Services → Feature Hooks → Feature Widgets → Feature UI
 4. For each layer, follow **Red-Green-Refactor**: write a failing test first, make it pass, then refactor
 5. Verify all tests pass, it compiles, and runs
 
@@ -19,7 +19,7 @@ Guide for implementing user stories from `docs/stories/` following opalite's arc
 
 ### 1. Load the Story
 
-Read the target story from `docs/stories/`. Stories are individual markdown files (e.g., `docs/stories/US-05-pr-dashboard.md`). Each story contains:
+Read the target story from `docs/stories/`. Stories are individual markdown files (e.g., `docs/stories/US-05-view-open-prs.md`). Each story contains:
 
 - **User Story**: The requirement
 - **Acceptance Criteria**: Testable conditions (checklist)
@@ -38,18 +38,18 @@ Before writing code:
 
 ### 3. Implementation Order
 
-Follow opalite's architecture — build from the inside out, using **Red-Green-Refactor** at each layer:
+Follow opalite's **feature-sliced architecture** — build from the inside out, using **Red-Green-Refactor** at each layer:
 
 ```
 1. Types      → TypeScript interfaces and types (src/types/)
 2. Services   → External integrations (src/services/)
                  TEST: __tests__/unit/services/ — mock external deps, test logic
-3. Hooks      → Business logic as React hooks (src/hooks/)
-                 TEST: __tests__/unit/hooks/ — test state transitions, data flow
-4. Widgets    → Pure presentational components (src/widgets/)
-                 TEST: __tests__/widgets/ — test rendering with mock props
-5. Screens    → Compose widgets + hooks (src/screens/)
-                 TEST: __tests__/integration/ — inject hook into widget, test UI behavior
+3. Hooks      → Business logic as React hooks (src/features/{feature}/hooks/)
+                 TEST: __tests__/features/{feature}/hooks/ — test state transitions, data flow
+4. Widgets    → Pure presentational components (src/features/{feature}/widgets/)
+                 TEST: __tests__/features/{feature}/widgets/ — test rendering with mock props
+5. UI         → Compose widgets + hooks (src/features/{feature}/ui/)
+                 TEST: __tests__/features/{feature}/integration/ — inject hook into widget, test UI behavior
 ```
 
 **At each layer, follow this cycle:**
@@ -71,26 +71,41 @@ Follow opalite's architecture — build from the inside out, using **Red-Green-R
 - Handle 401 errors: show "Your API token has expired. Run `opalite login` to add a new one."
 - **Test in** `__tests__/unit/services/` — mock external deps (network, filesystem, processes)
 
-#### Hooks (`src/hooks/`)
+#### Feature Hooks (`src/features/{feature}/hooks/`)
 - Custom hooks for data fetching: return `{ data, loading, error, refresh }`
 - Use services internally, expose clean state to widgets
 - **All business logic lives here** — hooks are the brain, widgets are the body
-- **Test in** `__tests__/unit/hooks/` — mock services, assert state transitions and data flow
+- **Test in** `__tests__/features/{feature}/hooks/` — mock services, assert state transitions and data flow
 
-#### Widgets (`src/widgets/`)
+#### Feature Widgets (`src/features/{feature}/widgets/`)
 - **Pure presentational components** — props in, JSX out, **NO business logic**
-- Use OpenTUI primitives: `<box>`, `<text>`, `<scroll-box>`, `<diff>`, `<code>`, `<select>`, `<input>`
+- Use OpenTUI primitives: `<box>`, `<text>`, `<scrollbox>`, `<diff>`, `<code>`, `<select>`, `<input>`
 - Use `useTerminalDimensions()` for responsive layout
 - Do NOT call hooks for data fetching — receive data and callbacks via props
-- **Test in** `__tests__/widgets/` — render with mock props, assert output
+- **Test in** `__tests__/features/{feature}/widgets/` — render with mock props, assert output
 
-#### Screens (`src/screens/`)
+#### Feature UI (`src/features/{feature}/ui/`)
 - Compose widgets + hooks — this is the wiring layer
 - Call hooks to get data, pass data and callbacks down to widgets as props
 - Receive `navigate` function from `App.tsx` for screen routing
 - Use `useKeyboard()` for screen-level keybindings — clean up on unmount
 - `App.tsx` uses `useState<Screen>` with a discriminated union for routing
-- **Test in** `__tests__/integration/` — inject hook + widget, simulate user interactions, assert UI behavior
+- **Test in** `__tests__/features/{feature}/integration/` — feature-level functional integration tests
+
+#### Integration test pattern (mock at external boundary)
+Mock `globalThis.fetch` with raw API responses, then exercise the full pipeline as production code:
+1. Mock `globalThis.fetch` → return Bitbucket API JSON responses
+2. Call service function → transforms API data to domain objects
+3. Run hook logic → grouping, sorting, summary, formatting
+4. Simulate key events → navigation state machine
+5. Assert at each step — data correctness AND what the user would see
+
+Reference: `__tests__/features/dashboard/integration/Dashboard.test.tsx`
+
+#### Shared (`src/features/shared/`)
+- Logic or widgets shared between two or more features
+- Contains `hooks/` and `widgets/` subfolders
+- **Test in** `__tests__/features/shared/hooks/` or `__tests__/features/shared/widgets/`
 
 ### 5. Create a Changeset
 
@@ -130,7 +145,7 @@ Story is complete when:
 - [ ] App runs without crashing (`bun run src/index.tsx`)
 - [ ] Technical task checkboxes in the story file are checked off
 - [ ] No hardcoded credentials or tokens in code
-- [ ] Business logic is in hooks, not in widgets or screens
+- [ ] Business logic is in hooks, not in widgets or UI screens
 - [ ] Widgets are pure presentational — no data fetching, no business logic
 
 ## Complexity Reference
@@ -149,7 +164,7 @@ Implementing US-5 (PR Dashboard):
 
 ```bash
 # 1. Read the story
-# Read docs/stories/US-05-pr-dashboard.md
+# Read docs/stories/US-05-view-open-prs.md
 
 # 2. Check dependencies — US-1 through US-4 must be done
 
@@ -158,22 +173,22 @@ Implementing US-5 (PR Dashboard):
 #    Types: src/types/bitbucket.ts (PR interface, pagination types)
 #
 #    Services: src/services/bitbucket.ts (fetchOpenPRs with pagination)
-#      RED:   write __tests__/unit/services/bitbucket.test.ts — test pagination, error handling
+#      RED:   write __tests__/unit/services/bitbucket.test.ts
 #      GREEN: implement fetchOpenPRs in src/services/bitbucket.ts
 #      REFACTOR: clean up
 #
-#    Hooks: src/hooks/usePRs.ts (data fetching hook)
-#      RED:   write __tests__/unit/hooks/usePRs.test.ts — test loading/data/error states
-#      GREEN: implement usePRs in src/hooks/usePRs.ts
+#    Hooks: src/features/dashboard/hooks/usePRs.ts (data fetching hook)
+#      RED:   write __tests__/features/dashboard/hooks/usePRs.test.ts
+#      GREEN: implement usePRs
 #      REFACTOR: clean up
 #
-#    Widgets: src/widgets/PRRow.tsx (single PR row — pure presentational)
-#      RED:   write __tests__/widgets/PRRow.test.tsx — test renders title, author, age from props
-#      GREEN: implement PRRow in src/widgets/PRRow.tsx
+#    Widgets: src/features/dashboard/widgets/PRRow.tsx (single PR row)
+#      RED:   write __tests__/features/dashboard/widgets/PRRow.test.tsx
+#      GREEN: implement PRRow
 #      REFACTOR: clean up
 #
-#    Screens: src/screens/Dashboard.tsx (wire usePRs hook to PRRow widget)
-#      RED:   write __tests__/integration/Dashboard.test.tsx — test loading → list → navigation
+#    UI: src/features/dashboard/ui/Dashboard.tsx (wire hook to widget)
+#      RED:   write __tests__/features/dashboard/integration/Dashboard.test.tsx
 #      GREEN: implement Dashboard composing hook + widget
 #      REFACTOR: clean up
 

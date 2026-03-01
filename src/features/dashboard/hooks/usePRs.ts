@@ -1,0 +1,154 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { fetchOpenPRsForAllRepos } from "../../../services/bitbucket";
+import type { AuthData } from "../../../services/auth";
+import type { PR, RepoGroup } from "../../../types/review";
+
+export function groupByRepo(prs: PR[]): RepoGroup[] {
+  const map = new Map<string, PR[]>();
+  for (const pr of prs) {
+    const existing = map.get(pr.repo);
+    if (existing) {
+      existing.push(pr);
+    } else {
+      map.set(pr.repo, [pr]);
+    }
+  }
+
+  const groups: RepoGroup[] = [];
+  for (const [repo, repoPRs] of map) {
+    groups.push({ repo, prs: sortPRsByAge(repoPRs) });
+  }
+  groups.sort((a, b) => a.repo.localeCompare(b.repo));
+  return groups;
+}
+
+export function sortPRsByAge(prs: PR[]): PR[] {
+  return [...prs].sort(
+    (a, b) => a.createdOn.getTime() - b.createdOn.getTime()
+  );
+}
+
+export function formatAge(created: Date, now: Date): string {
+  const diffMs = now.getTime() - created.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays >= 1) return `${diffDays}d`;
+  if (diffHours >= 1) return `${diffHours}h`;
+  return `${diffMinutes}m`;
+}
+
+export function getAgeColor(
+  created: Date,
+  now: Date,
+  warningHours: number,
+  criticalHours: number
+): "green" | "yellow" | "red" {
+  const diffHours =
+    (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+
+  if (diffHours >= criticalHours) return "red";
+  if (diffHours >= warningHours) return "yellow";
+  return "green";
+}
+
+export interface PRSummary {
+  total: number;
+  oldestAge: string;
+  averageAge: string;
+}
+
+export function computeSummary(prs: PR[], now: Date): PRSummary {
+  if (prs.length === 0) {
+    return { total: 0, oldestAge: "0m", averageAge: "0m" };
+  }
+
+  const ages = prs.map((pr) => now.getTime() - pr.createdOn.getTime());
+  const oldest = Math.max(...ages);
+  const average = ages.reduce((sum, age) => sum + age, 0) / ages.length;
+
+  const oldestDate = new Date(now.getTime() - oldest);
+  const averageDate = new Date(now.getTime() - average);
+
+  return {
+    total: prs.length,
+    oldestAge: formatAge(oldestDate, now),
+    averageAge: formatAge(averageDate, now),
+  };
+}
+
+export function formatLastFetch(fetchTime: Date, now: Date): string {
+  const diffSeconds = Math.floor(
+    (now.getTime() - fetchTime.getTime()) / 1000
+  );
+  if (diffSeconds < 60) return "just now";
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  return `${diffMinutes} min ago`;
+}
+
+export interface UsePRsResult {
+  prs: PR[];
+  groups: RepoGroup[];
+  loading: boolean;
+  error: string | null;
+  lastFetch: Date | null;
+  summary: PRSummary;
+  refresh: () => void;
+}
+
+export function usePRs(
+  auth: AuthData,
+  workspace: string,
+  repos: string[]
+): UsePRsResult {
+  const [prs, setPrs] = useState<PR[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastFetch, setLastFetch] = useState<Date | null>(null);
+  const mountedRef = useRef(true);
+
+  const fetchPRs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchOpenPRsForAllRepos(auth, workspace, repos);
+      if (mountedRef.current) {
+        setPrs(result);
+        setLastFetch(new Date());
+      }
+    } catch (err) {
+      if (mountedRef.current) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch PRs"
+        );
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [auth, workspace, repos.join(",")]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    fetchPRs();
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [fetchPRs]);
+
+  const now = new Date();
+  const groups = groupByRepo(prs);
+  const summary = computeSummary(prs, now);
+
+  return {
+    prs,
+    groups,
+    loading,
+    error,
+    lastFetch,
+    summary,
+    refresh: fetchPRs,
+  };
+}
