@@ -19,14 +19,14 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/services/auth.ts` with `loadAuthFile()`, `saveAuthFile()`, `deleteAuthFile()`, `getAuthHeader()`, and `bbFetch()` functions
-- [ ] Implement login flow: print instructions, prompt for email and token (hidden input), validate ATAT prefix
-- [ ] Validate credentials against Bitbucket API (`GET /2.0/user`) using Basic auth
-- [ ] On success, fetch user info (username, display_name) and save to `~/.config/opalite/auth.json`
-- [ ] Implement logout: delete auth.json and print confirmation
-- [ ] Add `login` and `logout` subcommands to CLI entry point (`src/index.tsx`)
-- [ ] Add auth guard: block all commands except `login`, `--help`, `--version` if not authenticated
-- [ ] Handle expired tokens: detect 401 responses and show "Your API token has expired. Run `opalite login` to add a new one."
+- [x] Create `src/services/auth.ts` with `loadAuthFile()`, `saveAuthFile()`, `deleteAuthFile()`, `getAuthHeader()`, and `bbFetch()` functions
+- [x] Implement login flow: print instructions, prompt for email and token (hidden input), validate ATAT prefix
+- [x] Validate credentials against Bitbucket API (`GET /2.0/user`) using Basic auth
+- [x] On success, fetch user info (username, display_name) and save to `~/.config/opalite/auth.json`
+- [x] Implement logout: delete auth.json and print confirmation
+- [x] Add `login` and `logout` subcommands to CLI entry point (`src/index.tsx`)
+- [x] Add auth guard: block all commands except `login`, `--help`, `--version` if not authenticated
+- [x] Handle expired tokens: detect 401 responses and show "Your API token has expired. Run `opalite login` to add a new one."
 
 ## Files to Create/Modify
 
