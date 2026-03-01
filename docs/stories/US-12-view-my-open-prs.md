@@ -17,16 +17,16 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/screens/MyPRs.tsx` screen component
-- [ ] Filter PRs where `author.nickname === currentUser.username`
-- [ ] Display each PR with title, age, total comment count, and unresolved comment count
-- [ ] Display reviewer statuses (approved, changes requested, pending) for each PR
-- [ ] Implement `j`/`k`/`Up`/`Down` keyboard navigation
-- [ ] Implement `Enter` to navigate to CommentQueue for selected PR
-- [ ] Implement `d` to switch back to Dashboard
-- [ ] Implement `q` to quit
-- [ ] Add KeyBar with MyPRs-specific bindings
-- [ ] Add `opalite my` subcommand to CLI entry point
+- [x] Create `src/screens/MyPRs.tsx` screen component
+- [x] Filter PRs where `author.nickname === currentUser.username`
+- [x] Display each PR with title, age, total comment count, and unresolved comment count
+- [x] Display reviewer statuses (approved, changes requested, pending) for each PR
+- [x] Implement `j`/`k`/`Up`/`Down` keyboard navigation
+- [x] Implement `Enter` to navigate to CommentQueue for selected PR
+- [x] Implement `d` to switch back to Dashboard
+- [x] Implement `q` to quit
+- [x] Add KeyBar with MyPRs-specific bindings
+- [x] Add `opalite my` subcommand to CLI entry point
 
 ## Files to Create/Modify
 
