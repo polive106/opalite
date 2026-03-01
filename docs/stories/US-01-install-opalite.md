@@ -17,13 +17,13 @@
 
 ## Technical Tasks
 
-- [ ] Create `package.json` with name, version, bin entry, and dependencies
-- [ ] Create `tsconfig.json` with OpenTUI JSX settings
-- [ ] Create `bunfig.toml` if needed
-- [ ] Create `src/index.tsx` entry point with CLI arg parsing (`--version`, `--help`, subcommands)
-- [ ] Implement `--version` flag (reads version from package.json)
-- [ ] Implement `--help` flag (prints available commands)
-- [ ] Create `install.sh` that checks for Bun, installs opalite globally, and fixes PATH
+- [x] Create `package.json` with name, version, bin entry, and dependencies
+- [x] Create `tsconfig.json` with OpenTUI JSX settings
+- [x] Create `bunfig.toml` if needed
+- [x] Create `src/index.tsx` entry point with CLI arg parsing (`--version`, `--help`, subcommands)
+- [x] Implement `--version` flag (reads version from package.json)
+- [x] Implement `--help` flag (prints available commands)
+- [x] Create `install.sh` that checks for Bun, installs opalite globally, and fixes PATH
 - [ ] Verify install works on macOS and Linux
 
 ## Files to Create/Modify

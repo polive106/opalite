@@ -66,6 +66,7 @@ __tests__/
 
 - **Red-Green-Refactor** — all development follows TDD. Write a failing test first (red), make it pass with minimal code (green), then refactor. No production code without a failing test first.
 - **Bun only** — use `Bun.spawn()` for process spawning, `bun` for package management
+- **Use `bun add` for dependencies** — never manually edit `package.json` to add dependencies. Use `bun add <pkg>` (or `bun add -d <pkg>` for dev deps) so Bun manages versions and the lockfile
 - **Strict TypeScript** — no `any`, no `as` casts unless absolutely necessary
 - **Minimal changes** — don't refactor unrelated code, don't add extra features
 - **No API keys in code** — AI features use the agent CLI the user has installed
@@ -74,6 +75,28 @@ __tests__/
 - **Basic HTTP auth** — `Authorization: Basic base64(email:token)` for all Bitbucket API calls
 - **Pagination** — Bitbucket uses `next` URL in responses. Always implement auto-pagination.
 - **Error handling** — expired tokens return 401, show "Your API token has expired. Run `opalite login` to add a new one."
+- **Changesets required** — every commit must include a changeset file. See the Changesets section below.
+
+## Changesets (versioning)
+
+Every commit that changes production code must include a changeset file. A **PreToolUse hook** blocks `git commit` if none exists.
+
+**To create a changeset**, add a markdown file to `.changeset/` (any descriptive name, e.g., `.changeset/add-login-command.md`):
+
+```md
+---
+"opalite": patch
+---
+
+Add login command with Basic auth support.
+```
+
+**Bump types:**
+- `patch` — bug fixes, small tweaks
+- `minor` — new features, new user stories
+- `major` — breaking changes
+
+After merging, `npx changeset version` consumes changeset files and bumps `package.json` version.
 
 ## Architecture patterns
 
