@@ -1,5 +1,11 @@
 # opalite
 
+## 0.3.1
+
+### Patch Changes
+
+- 4063b84: Add project README with installation instructions, usage guide, and configuration docs.
+
 ## 0.3.0
 
 ### Minor Changes
