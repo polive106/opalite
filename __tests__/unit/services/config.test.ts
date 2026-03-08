@@ -10,6 +10,17 @@ import {
   mergeConfigs,
   type OpaliteConfig,
 } from "../../../src/services/config";
+import type { AgentConfig } from "../../../src/types/agent";
+
+const claudeAgent: AgentConfig = {
+  default: "claude-code",
+  "claude-code": { print: 'claude --print "{prompt}"' },
+};
+
+const cursorAgent: AgentConfig = {
+  default: "cursor",
+  cursor: { print: 'agent -p "{prompt}"' },
+};
 
 let tempDir: string;
 
@@ -36,7 +47,7 @@ describe("saveConfig", () => {
     const config: OpaliteConfig = {
       workspace: "my-workspace",
       repos: ["repo-a", "repo-b"],
-      agent: "claude",
+      agent: claudeAgent,
     };
 
     await saveConfig(config, configPath);
@@ -45,7 +56,7 @@ describe("saveConfig", () => {
     expect(content).toContain("workspace: my-workspace");
     expect(content).toContain("repo-a");
     expect(content).toContain("repo-b");
-    expect(content).toContain("agent: claude");
+    expect(content).toContain("default: claude-code");
   });
 
   it("should create parent directories if they don't exist", async () => {
@@ -67,14 +78,17 @@ describe("loadConfig", () => {
     const configPath = join(tempDir, "config.yml");
     await writeFile(
       configPath,
-      "workspace: my-workspace\nrepos:\n  - repo-a\n  - repo-b\nagent: claude\n"
+      'workspace: my-workspace\nrepos:\n  - repo-a\n  - repo-b\nagent:\n  default: claude-code\n  claude-code:\n    print: \'claude --print "{prompt}"\'\n'
     );
 
     const config = await loadConfig(configPath);
     expect(config).not.toBeNull();
     expect(config!.workspace).toBe("my-workspace");
     expect(config!.repos).toEqual(["repo-a", "repo-b"]);
-    expect(config!.agent).toBe("claude");
+    expect(config!.agent).toEqual({
+      default: "claude-code",
+      "claude-code": { print: 'claude --print "{prompt}"' },
+    });
   });
 
   it("should return null if the file does not exist", async () => {
@@ -103,20 +117,20 @@ describe("mergeConfigs", () => {
     const local: OpaliteConfig = {
       workspace: "my-ws",
       repos: ["repo-a"],
-      agent: "claude",
+      agent: claudeAgent,
     };
 
     const merged = mergeConfigs(local, null);
     expect(merged.workspace).toBe("my-ws");
     expect(merged.repos).toEqual(["repo-a"]);
-    expect(merged.agent).toBe("claude");
+    expect(merged.agent).toEqual(claudeAgent);
   });
 
   it("should use shared config workspace and repos over local", () => {
     const local: OpaliteConfig = {
       workspace: "my-ws",
       repos: ["repo-a"],
-      agent: "claude",
+      agent: claudeAgent,
     };
     const shared: OpaliteConfig = {
       workspace: "team-ws",
@@ -132,7 +146,7 @@ describe("mergeConfigs", () => {
     const local: OpaliteConfig = {
       workspace: "my-ws",
       repos: ["repo-a"],
-      agent: "claude",
+      agent: claudeAgent,
     };
     const shared: OpaliteConfig = {
       workspace: "team-ws",
@@ -140,23 +154,23 @@ describe("mergeConfigs", () => {
     };
 
     const merged = mergeConfigs(local, shared);
-    expect(merged.agent).toBe("claude");
+    expect(merged.agent).toEqual(claudeAgent);
   });
 
   it("should use shared agent when both have agent set", () => {
     const local: OpaliteConfig = {
       workspace: "my-ws",
       repos: ["repo-a"],
-      agent: "claude",
+      agent: claudeAgent,
     };
     const shared: OpaliteConfig = {
       workspace: "team-ws",
       repos: ["team-repo"],
-      agent: "cursor-agent",
+      agent: cursorAgent,
     };
 
     const merged = mergeConfigs(local, shared);
-    expect(merged.agent).toBe("cursor-agent");
+    expect(merged.agent).toEqual(cursorAgent);
   });
 
   it("should use shared autoRefreshInterval over local", () => {
@@ -194,12 +208,12 @@ describe("mergeConfigs", () => {
     const shared: OpaliteConfig = {
       workspace: "team-ws",
       repos: ["team-repo"],
-      agent: "cursor-agent",
+      agent: cursorAgent,
     };
 
     const merged = mergeConfigs(null, shared);
     expect(merged.workspace).toBe("team-ws");
     expect(merged.repos).toEqual(["team-repo"]);
-    expect(merged.agent).toBe("cursor-agent");
+    expect(merged.agent).toEqual(cursorAgent);
   });
 });

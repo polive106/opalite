@@ -109,10 +109,31 @@ export function InitWizard({ auth, onComplete, onError }: InitWizardProps) {
   const handleAgentSelect = useCallback(
     (agent: string | undefined) => {
       if (step.name === "select-agent") {
+        const agentTemplates: Record<string, Record<string, string>> = {
+          "claude-code": {
+            interactive: 'claude "{prompt}"',
+            print: 'claude --print "{prompt}"',
+            print_json: 'claude --print --output-format json "{prompt}"',
+          },
+          cursor: {
+            interactive: 'agent "{prompt}"',
+            print: 'agent -p "{prompt}"',
+            print_json: 'agent -p --output-format json "{prompt}"',
+          },
+        };
         const config: OpaliteConfig = {
           workspace: step.workspace,
           repos: step.repos,
-          ...(agent ? { agent } : {}),
+          ...(agent
+            ? {
+                agent: {
+                  default: agent,
+                  [agent]: agentTemplates[agent] ?? {
+                    print: `${agent} "{prompt}"`,
+                  },
+                },
+              }
+            : {}),
         };
         setStep({ name: "done" });
         onComplete(config);
