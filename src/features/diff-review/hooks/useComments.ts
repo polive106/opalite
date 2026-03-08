@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { fetchPRComments } from "../../../services/bitbucket";
 import { queryClient } from "../../../services/queryClient";
 import { queryKeys } from "../../../services/queryKeys";
@@ -85,6 +85,7 @@ export function useComments(
     queryKey: queryKeys.comments(workspace, repo, prId),
     queryFn: () => fetchPRComments(auth, workspace, repo, prId),
     staleTime: 1 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch comments") : null;

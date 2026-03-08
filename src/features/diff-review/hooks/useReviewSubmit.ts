@@ -8,6 +8,7 @@ import {
 import { queryClient } from "../../../services/queryClient";
 import { queryKeys } from "../../../services/queryKeys";
 import type { AuthData } from "../../../services/auth";
+import type { Comment } from "../../../types/review";
 
 export type ReviewAction = "approve" | "request-changes" | "comment";
 
@@ -61,6 +62,23 @@ export function resetState(action: ReviewAction): ReviewSubmitState {
   return initReviewState(action);
 }
 
+export function createOptimisticComment(
+  auth: AuthData,
+  content: string,
+  now: Date = new Date()
+): Comment {
+  return {
+    id: -now.getTime(),
+    author: { displayName: auth.displayName, nickname: auth.username },
+    content,
+    createdOn: now,
+    isInline: false,
+    resolved: false,
+    deleted: false,
+    replies: [],
+  };
+}
+
 export interface UseReviewSubmitResult {
   state: ReviewSubmitState;
   changeAction: (action: ReviewAction) => void;
@@ -79,6 +97,8 @@ export function useReviewSubmit(
     initReviewState(initialAction)
   );
 
+  const commentsKey = queryKeys.comments(workspace, repo, prId);
+
   const mutation = useMutation({
     mutationFn: async ({ action, comment }: { action: ReviewAction; comment: string }) => {
       if (comment.trim() !== "") {
@@ -93,9 +113,35 @@ export function useReviewSubmit(
         await requestChangesPR(auth, workspace, repo, prId);
       }
     },
-    onSuccess: () => {
+    onMutate: async ({ comment }) => {
+      if (comment.trim() === "") return;
+
+      // Cancel in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: commentsKey });
+
+      // Snapshot the previous comments for rollback
+      const previousComments = queryClient.getQueryData<Comment[]>(commentsKey);
+
+      // Optimistically add the new comment to the cache
+      if (previousComments) {
+        queryClient.setQueryData<Comment[]>(commentsKey, [
+          ...previousComments,
+          createOptimisticComment(auth, comment),
+        ]);
+      }
+
+      return { previousComments };
+    },
+    onError: (_err, _vars, context) => {
+      // Roll back to the previous comments on error
+      if (context?.previousComments) {
+        queryClient.setQueryData<Comment[]>(commentsKey, context.previousComments);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after mutation to sync with server
       queryClient.invalidateQueries({ queryKey: queryKeys.prs(workspace, [repo]) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments(workspace, repo, prId) });
+      queryClient.invalidateQueries({ queryKey: commentsKey });
     },
   });
 

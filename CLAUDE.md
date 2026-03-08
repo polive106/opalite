@@ -123,10 +123,85 @@ After merging, `npx changeset version` consumes changeset files and bumps `packa
 ## Architecture patterns
 
 - **Screen routing**: `App.tsx` uses `useState<Screen>` with a discriminated union. Pass `navigate` function to all screens.
-- **Data fetching**: Custom hooks (`usePRs`, `useDiff`, etc.) handle fetch + state. Return `{ data, loading, error, refresh }`.
+- **Data fetching (TanStack Query)**: All data fetching uses `@tanstack/react-query`. See "TanStack Query patterns" section below.
 - **Agent spawning**: Command templates with `{prompt}` placeholder from config. Three modes: interactive (stdio inherited), print (capture stdout), print JSON (parse JSON output). Agent CLI is configurable (Claude Code or Cursor CLI). Service: `src/services/agent.ts`.
 - **AI comment refinement**: When a reviewer writes a comment, the agent refines it via a conversational loop (draft → suggestion → accept/reject/edit). Hook: `useCommentRefinement`. Widget: `CommentRefinement`. Prompts: `src/services/prompt.ts`. Full spec: `docs/epics/EP-01-ai-assisted-review.md`.
 - **Git operations**: All via `Bun.spawn()` with `cwd: getRepoRoot()`. Wrapped in `src/services/git.ts`.
+
+## TanStack Query patterns
+
+All data fetching uses `@tanstack/react-query` v5. The `QueryClientProvider` wraps `<App />` in `src/index.tsx`.
+
+### Key files
+
+| File | Purpose |
+|------|---------|
+| `src/services/queryClient.ts` | Singleton `QueryClient` with production defaults |
+| `src/services/queryKeys.ts` | Query key factory — ensures consistent, sortable keys |
+| `__tests__/test-utils/createTestQueryClient.ts` | Test-specific `QueryClient` (no retries, no stale caching) |
+
+### Adding a new query
+
+1. **Add a query key** to `src/services/queryKeys.ts`:
+   ```ts
+   export const queryKeys = {
+     // ... existing keys
+     myNewData: (workspace: string, id: number) =>
+       ["myNewData", workspace, id] as const,
+   };
+   ```
+
+2. **Use `useQuery` in your hook** (`src/features/{feature}/hooks/`):
+   ```ts
+   import { useQuery, keepPreviousData } from "@tanstack/react-query";
+   import { queryKeys } from "../../../services/queryKeys";
+
+   export function useMyNewData(auth: AuthData, workspace: string, id: number) {
+     const { data, isLoading, error } = useQuery({
+       queryKey: queryKeys.myNewData(workspace, id),
+       queryFn: () => fetchMyNewData(auth, workspace, id),
+       staleTime: 2 * 60 * 1000, // tune per feature
+       placeholderData: keepPreviousData, // smooth transitions
+     });
+     // ... return backward-compatible { data, loading, error, refresh }
+   }
+   ```
+
+3. **For mutations**, use `useMutation` with optimistic updates:
+   ```ts
+   const mutation = useMutation({
+     mutationFn: (vars) => postData(vars),
+     onMutate: async (vars) => {
+       await queryClient.cancelQueries({ queryKey });
+       const previous = queryClient.getQueryData(queryKey);
+       queryClient.setQueryData(queryKey, optimisticData);
+       return { previous };
+     },
+     onError: (_err, _vars, context) => {
+       queryClient.setQueryData(queryKey, context?.previous);
+     },
+     onSettled: () => {
+       queryClient.invalidateQueries({ queryKey });
+     },
+   });
+   ```
+
+### Stale times by query type
+
+| Query | Stale time | Rationale |
+|-------|-----------|-----------|
+| PR lists | 2 min | Matches auto-refresh interval |
+| Diffs | 5 min | Diffs change infrequently |
+| Comments | 1 min | Comments need fresher data |
+| My PRs | 2 min | Same as PR lists |
+
+### Testing queries
+
+- Use `createTestQueryClient()` from `__tests__/test-utils/` — disables retries and stale caching
+- Test cache behavior with `queryClient.fetchQuery()` + `queryClient.getQueryData()`
+- Test optimistic updates by manipulating `queryClient.setQueryData()` directly
+- Mock at `globalThis.fetch` level, not at the query layer
+- Count `fetchSpy.mock.calls.length` to verify cache hits vs misses
 
 ## Testing architecture
 
