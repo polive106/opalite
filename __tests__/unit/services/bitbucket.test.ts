@@ -9,6 +9,7 @@ import {
   approvePR,
   requestChangesPR,
   unapprovePR,
+  resolveComment,
   type DiffStatEntry,
 } from "../../../src/services/bitbucket";
 import type { AuthData } from "../../../src/services/auth";
@@ -743,6 +744,61 @@ describe("unapprovePR", () => {
 
     try {
       await unapprovePR(mockAuth, "workspace", "repo", 42);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe(
+        "Your API token has expired. Run `opalite login` to add a new one."
+      );
+    }
+  });
+});
+
+describe("resolveComment", () => {
+  let fetchSpy: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = spyOn(globalThis, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("should PUT to the comment endpoint with resolved: true", async () => {
+    const bbResponse: BitbucketComment = makeBBComment({
+      id: 100,
+      resolved: true,
+    });
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(bbResponse), { status: 200 })
+    );
+
+    await resolveComment(mockAuth, "workspace", "repo", 42, 100);
+
+    const [url, options] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/repositories/workspace/repo/pullrequests/42/comments/100");
+    expect(options.method).toBe("PUT");
+    const body = JSON.parse(options.body as string);
+    expect(body.resolved).toBe(true);
+  });
+
+  it("should throw on non-ok response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Error", { status: 500 }));
+
+    try {
+      await resolveComment(mockAuth, "workspace", "repo", 42, 100);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toContain("Failed to resolve comment");
+    }
+  });
+
+  it("should throw on 401 response", async () => {
+    fetchSpy.mockResolvedValueOnce(new Response("Unauthorized", { status: 401 }));
+
+    try {
+      await resolveComment(mockAuth, "workspace", "repo", 42, 100);
       expect(true).toBe(false);
     } catch (error) {
       expect((error as Error).message).toBe(

@@ -20,21 +20,25 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/screens/CommentQueue.tsx` screen component
-- [ ] Fetch unresolved comments for the selected PR from Bitbucket API
-- [ ] Display each comment with: number, author, file:line, comment text, code context (~5 lines around the commented line)
-- [ ] Implement `j`/`k`/`Up`/`Down` keyboard navigation between comments
-- [ ] Implement `f` to trigger single agent fix flow (navigate to AgentFix)
-- [ ] Implement `F` to trigger batch fix flow
-- [ ] Implement `r` to open reply editor for selected comment
-- [ ] Implement `v` to mark comment as resolved via Bitbucket API
-- [ ] Implement `e` to copy generated prompt to clipboard
-- [ ] Implement `b` to go back to MyPRs
-- [ ] Add KeyBar with CommentQueue-specific bindings
+- [x] Create `src/screens/CommentQueue.tsx` screen component
+- [x] Fetch unresolved comments for the selected PR from Bitbucket API
+- [x] Display each comment with: number, author, file:line, comment text, code context (~5 lines around the commented line)
+- [x] Implement `j`/`k`/`Up`/`Down` keyboard navigation between comments
+- [x] Implement `f` to trigger single agent fix flow (navigate to AgentFix)
+- [x] Implement `F` to trigger batch fix flow
+- [x] Implement `r` to open reply editor for selected comment
+- [x] Implement `v` to mark comment as resolved via Bitbucket API
+- [x] Implement `e` to copy generated prompt to clipboard
+- [x] Implement `b` to go back to MyPRs
+- [x] Add KeyBar with CommentQueue-specific bindings
 
 ## Files to Create/Modify
 
-- `src/screens/CommentQueue.tsx` (create)
+- `src/features/comment-queue/ui/CommentQueue.tsx` (create)
+- `src/features/comment-queue/hooks/useCommentQueue.ts` (create)
+- `src/features/comment-queue/hooks/useCommentQueueNavigation.ts` (create)
+- `src/features/comment-queue/widgets/CommentRow.tsx` (create)
+- `src/services/bitbucket.ts` (modify — add resolveComment)
 - `src/App.tsx` (modify — add CommentQueue to screen routing)
 
 ## Dependencies

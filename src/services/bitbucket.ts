@@ -305,6 +305,24 @@ export async function unapprovePR(
   }
 }
 
+export async function resolveComment(
+  auth: AuthData,
+  workspace: string,
+  repoSlug: string,
+  prId: number,
+  commentId: number
+): Promise<void> {
+  const endpoint = `/2.0/repositories/${workspace}/${repoSlug}/pullrequests/${prId}/comments/${commentId}`;
+  const response = await bbFetch(endpoint, auth, {
+    method: "PUT",
+    body: { resolved: true },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to resolve comment (HTTP ${response.status}).`);
+  }
+}
+
 export async function fetchPRComments(
   auth: AuthData,
   workspace: string,

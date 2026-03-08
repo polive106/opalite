@@ -2,6 +2,7 @@ import { Dashboard } from "./features/dashboard/ui/Dashboard";
 import { DiffNav } from "./features/diff-review/ui/DiffNav";
 import { ReviewSubmit } from "./features/diff-review/ui/ReviewSubmit";
 import { MyPRsScreen } from "./features/author-mode/ui/MyPRs";
+import { CommentQueueScreen } from "./features/comment-queue/ui/CommentQueue";
 import { PlaceholderScreen } from "./features/shared/widgets/PlaceholderScreen";
 import { useScreenStack } from "./features/shared/hooks/useScreenStack";
 import type { AuthData } from "./services/auth";
@@ -83,6 +84,15 @@ export function App({
         />
       );
     case "comment-queue":
+      return (
+        <CommentQueueScreen
+          auth={auth}
+          workspace={workspace}
+          pr={current.pr}
+          navigate={navigate}
+          goBack={goBack}
+        />
+      );
     case "agent-fix":
       return (
         <PlaceholderScreen
