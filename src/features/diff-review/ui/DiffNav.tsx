@@ -1,10 +1,16 @@
 import { useState, useCallback } from "react";
 import { useTerminalDimensions, useKeyboard } from "@opentui/react";
 import { theme } from "../../../theme/tokyo-night";
+import { postPRComment, type PostCommentInput } from "../../../services/bitbucket";
 import { useDiff } from "../hooks/useDiff";
 import { useComments } from "../hooks/useComments";
 import { handleDiffNavKey } from "../hooks/useDiffNavigation";
 import { useCommentEditor, handleCommentEditorKey } from "../hooks/useCommentEditor";
+import {
+  useCommentRefinement,
+  handleRefinementKey,
+  type RefinementContext,
+} from "../hooks/useCommentRefinement";
 import { FileTree } from "../widgets/FileTree";
 import { DiffHeader, formatDiffHeader } from "../widgets/DiffHeader";
 import {
@@ -16,8 +22,13 @@ import {
   formatEditorHeader,
   formatEditorStatus,
 } from "../widgets/CommentEditor";
+import {
+  CommentRefinement,
+  formatRefinementHeader,
+} from "../widgets/CommentRefinement";
 import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
 import type { AuthData } from "../../../services/auth";
+import type { OpaliteConfig } from "../../../services/config";
 import type { PR } from "../../../types/review";
 import type { Screen } from "../../../App";
 import type { FocusPanel, ViewMode } from "../hooks/useDiffNavigation";
@@ -42,11 +53,12 @@ export interface DiffNavProps {
   auth: AuthData;
   workspace: string;
   pr: PR;
+  config?: OpaliteConfig;
   goBack: () => void;
   navigate?: (screen: Screen) => void;
 }
 
-export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps) {
+export function DiffNav({ auth, workspace, pr, config, goBack, navigate }: DiffNavProps) {
   const { width, height } = useTerminalDimensions();
   const { files, fileDiffs, loading, error } = useDiff(
     auth,
@@ -63,20 +75,92 @@ export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps)
 
   const editor = useCommentEditor(auth, workspace, pr.repo, pr.id);
 
+  const defaultConfig: OpaliteConfig = config ?? { workspace, repos: [] };
+  const refinement = useCommentRefinement(defaultConfig);
+
   const [focusPanel, setFocusPanel] = useState<FocusPanel>("tree");
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("split");
+  const [feedbackMode, setFeedbackMode] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+
+  const refinementActive = refinement.state.status !== "idle";
+
+  // Post a comment to Bitbucket and refresh
+  const postAndRefresh = useCallback(async (text: string) => {
+    const input: PostCommentInput = { content: text };
+
+    const editorState = editor.editorState;
+    if (editorState.filePath !== undefined && editorState.lineNumber !== undefined) {
+      input.inline = { path: editorState.filePath, to: editorState.lineNumber };
+    }
+    if (editorState.parentCommentId !== undefined) {
+      input.parentId = editorState.parentCommentId;
+    }
+
+    await postPRComment(auth, workspace, pr.repo, pr.id, input);
+    await refreshComments();
+  }, [auth, workspace, pr.repo, pr.id, editor.editorState, refreshComments]);
 
   useKeyboard((e) => {
+    // Refinement active — handle refinement keys
+    if (refinementActive) {
+      const action = handleRefinementKey(e.name, refinement.state.status, feedbackMode);
+
+      switch (action.action) {
+        case "accept": {
+          const result = refinement.accept();
+          postAndRefresh(result.text);
+          editor.close();
+          break;
+        }
+        case "skip": {
+          const result = refinement.skip();
+          postAndRefresh(result.text);
+          editor.close();
+          break;
+        }
+        case "edit": {
+          const result = refinement.edit();
+          editor.setText(result.text);
+          // Editor stays open with refined text for manual tweaking
+          break;
+        }
+        case "enter-feedback":
+          setFeedbackMode(true);
+          setFeedbackText("");
+          break;
+        case "send-feedback":
+          if (feedbackText.trim() !== "") {
+            refinement.reject(feedbackText.trim());
+            setFeedbackMode(false);
+            setFeedbackText("");
+          }
+          break;
+        case "exit-feedback":
+          setFeedbackMode(false);
+          setFeedbackText("");
+          break;
+        case "cancel":
+          refinement.cancel();
+          editor.close();
+          setFeedbackMode(false);
+          setFeedbackText("");
+          break;
+      }
+      return;
+    }
+
+    // Editor open — handle editor keys
     if (editor.editorState.isOpen) {
       const editorAction = handleCommentEditorKey(e.name);
       if (editorAction.action === "close") {
         editor.close();
       }
-      // "ai-suggest" is a stub for Phase 5, US-19 — no-op for now
       return;
     }
 
+    // Normal DiffNav keys
     const result = handleDiffNavKey(
       e.name,
       { focusPanel, selectedFileIndex, viewMode },
@@ -131,11 +215,46 @@ export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps)
 
   const handleSubmit = useCallback(async () => {
     if (editor.editorState.text.trim() === "") return;
-    const result = await editor.submit();
+
+    // If agent is configured, start refinement instead of posting directly
+    const draft = editor.getDraftData();
+    const selectedFilePath = files[selectedFileIndex]?.path;
+    const fileDiffContent = fileDiffs[selectedFileIndex]?.content ?? "";
+    const existingComments = selectedFilePath
+      ? (grouped.fileComments[selectedFilePath] ?? [])
+      : [];
+
+    const context: RefinementContext = {
+      filePath: draft.filePath ?? selectedFilePath ?? "",
+      lineNumber: draft.lineNumber,
+      prId: pr.id,
+      prTitle: pr.title,
+      sourceBranch: pr.sourceBranch,
+      destinationBranch: pr.destinationBranch,
+      fileDiff: fileDiffContent,
+      existingComments,
+    };
+
+    const result = await refinement.refine(draft.text, context);
+
     if (result) {
-      await refreshComments();
+      // No agent configured — post directly (graceful degradation)
+      await postAndRefresh(result.text);
+      editor.close();
     }
-  }, [editor.editorState.text, editor.submit, refreshComments]);
+    // If result is null, refinement widget is now showing — user must act
+  }, [
+    editor.editorState.text,
+    editor.getDraftData,
+    files,
+    selectedFileIndex,
+    fileDiffs,
+    grouped.fileComments,
+    pr,
+    refinement.refine,
+    postAndRefresh,
+    editor.close,
+  ]);
 
   const now = new Date();
   const headerData = formatDiffHeader(pr, now);
@@ -206,6 +325,14 @@ export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps)
     editor.editorState.error
   );
 
+  // Refinement widget props
+  const refinementHeader = refinementActive
+    ? formatRefinementHeader(
+        editor.editorState.filePath,
+        editor.editorState.lineNumber
+      )
+    : "";
+
   return (
     <box
       width={width}
@@ -269,8 +396,22 @@ export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps)
             )}
           </scrollbox>
 
-          {/* Comment editor */}
-          {editor.editorState.isOpen && (
+          {/* Comment refinement widget — replaces editor when active */}
+          {refinementActive && (
+            <CommentRefinement
+              header={refinementHeader}
+              draft={refinement.state.draft ?? ""}
+              suggestion={refinement.state.suggestion ?? undefined}
+              loading={refinement.state.status === "loading"}
+              error={refinement.state.error ?? undefined}
+              feedbackMode={feedbackMode}
+              feedbackText={feedbackText}
+              onFeedbackChange={setFeedbackText}
+            />
+          )}
+
+          {/* Comment editor — hidden when refinement is active */}
+          {editor.editorState.isOpen && !refinementActive && (
             <CommentEditor
               header={editorHeader}
               text={editor.editorState.text}

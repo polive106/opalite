@@ -79,6 +79,22 @@ export function buildPostInput(state: CommentEditorState): PostCommentInput {
   return input;
 }
 
+export interface DraftData {
+  text: string;
+  filePath?: string;
+  lineNumber?: number;
+  parentCommentId?: number;
+}
+
+export function getDraft(state: CommentEditorState): DraftData {
+  return {
+    text: state.text,
+    filePath: state.filePath,
+    lineNumber: state.lineNumber,
+    parentCommentId: state.parentCommentId,
+  };
+}
+
 export type CommentEditorKeyAction =
   | { action: "close" }
   | { action: "ai-suggest" }
@@ -103,6 +119,7 @@ export interface UseCommentEditorResult {
   close: () => void;
   setText: (text: string) => void;
   submit: () => Promise<Comment | null>;
+  getDraftData: () => DraftData;
 }
 
 export function useCommentEditor(
@@ -144,5 +161,9 @@ export function useCommentEditor(
     }
   }, [auth, workspace, repo, prId, editorState]);
 
-  return { editorState, openInline, openReply, close, setText, submit };
+  const getDraftData = useCallback((): DraftData => {
+    return getDraft(editorState);
+  }, [editorState]);
+
+  return { editorState, openInline, openReply, close, setText, submit, getDraftData };
 }

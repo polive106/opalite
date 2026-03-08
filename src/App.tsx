@@ -6,6 +6,7 @@ import { CommentQueueScreen } from "./features/comment-queue/ui/CommentQueue";
 import { PlaceholderScreen } from "./features/shared/widgets/PlaceholderScreen";
 import { useScreenStack } from "./features/shared/hooks/useScreenStack";
 import type { AuthData } from "./services/auth";
+import type { OpaliteConfig } from "./services/config";
 import type { PR } from "./types/review";
 import type { ReviewAction } from "./features/diff-review/hooks/useReviewSubmit";
 
@@ -21,6 +22,7 @@ export interface AppProps {
   auth: AuthData;
   workspace: string;
   repos: string[];
+  config?: OpaliteConfig;
   warningHours?: number;
   criticalHours?: number;
   autoRefreshInterval?: number;
@@ -31,6 +33,7 @@ export function App({
   auth,
   workspace,
   repos,
+  config,
   warningHours = 24,
   criticalHours = 48,
   autoRefreshInterval,
@@ -57,6 +60,7 @@ export function App({
           auth={auth}
           workspace={workspace}
           pr={current.pr}
+          config={config}
           goBack={goBack}
           navigate={navigate}
         />

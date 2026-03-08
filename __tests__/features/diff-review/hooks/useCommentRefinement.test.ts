@@ -16,6 +16,7 @@ import {
   type RefinementContext,
   type RefinementHistoryEntry,
   type RefinementResult,
+  type RefinementKeyAction,
   initialRefinementState,
   startLoading,
   setSuggestion,
@@ -29,6 +30,7 @@ import {
   MAX_HISTORY_ROUNDS,
   refineComment,
   rejectSuggestion,
+  handleRefinementKey,
 } from "../../../../src/features/diff-review/hooks/useCommentRefinement";
 
 const mockConfig: OpaliteConfig = {
@@ -354,5 +356,80 @@ describe("rejectSuggestion async", () => {
     expect(result.history).toHaveLength(3);
     expect(result.history[0].suggestion).toBe("s2");
     expect(result.history[2].suggestion).toBe("s4");
+  });
+});
+
+describe("handleRefinementKey", () => {
+  // ─── Suggestion state keys ───
+
+  it("should return accept action on 'a' in suggestion state", () => {
+    const action = handleRefinementKey("a", "suggestion", false);
+    expect(action.action).toBe("accept");
+  });
+
+  it("should return skip action on 's' in suggestion state", () => {
+    const action = handleRefinementKey("s", "suggestion", false);
+    expect(action.action).toBe("skip");
+  });
+
+  it("should return edit action on 'e' in suggestion state", () => {
+    const action = handleRefinementKey("e", "suggestion", false);
+    expect(action.action).toBe("edit");
+  });
+
+  it("should return enter-feedback action on 'r' in suggestion state", () => {
+    const action = handleRefinementKey("r", "suggestion", false);
+    expect(action.action).toBe("enter-feedback");
+  });
+
+  it("should return cancel action on Esc in suggestion state", () => {
+    const action = handleRefinementKey("escape", "suggestion", false);
+    expect(action.action).toBe("cancel");
+  });
+
+  // ─── Loading state keys ───
+
+  it("should return cancel action on Esc in loading state", () => {
+    const action = handleRefinementKey("escape", "loading", false);
+    expect(action.action).toBe("cancel");
+  });
+
+  it("should return none for non-Esc keys in loading state", () => {
+    const action = handleRefinementKey("a", "loading", false);
+    expect(action.action).toBe("none");
+  });
+
+  // ─── Error state keys ───
+
+  it("should return skip action on 's' in error state", () => {
+    const action = handleRefinementKey("s", "error", false);
+    expect(action.action).toBe("skip");
+  });
+
+  it("should return cancel action on Esc in error state", () => {
+    const action = handleRefinementKey("escape", "error", false);
+    expect(action.action).toBe("cancel");
+  });
+
+  it("should return none for other keys in error state", () => {
+    const action = handleRefinementKey("a", "error", false);
+    expect(action.action).toBe("none");
+  });
+
+  // ─── Feedback mode keys ───
+
+  it("should return send-feedback on Enter in feedback mode", () => {
+    const action = handleRefinementKey("return", "suggestion", true);
+    expect(action.action).toBe("send-feedback");
+  });
+
+  it("should return exit-feedback on Esc in feedback mode", () => {
+    const action = handleRefinementKey("escape", "suggestion", true);
+    expect(action.action).toBe("exit-feedback");
+  });
+
+  it("should return none for other keys in feedback mode", () => {
+    const action = handleRefinementKey("a", "suggestion", true);
+    expect(action.action).toBe("none");
   });
 });
