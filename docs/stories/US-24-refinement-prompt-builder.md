@@ -18,13 +18,13 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/services/prompt.ts`
-- [ ] Define `RefinementPromptInput` type: `{ filePath, lineNumber, prId, prTitle, sourceBranch, destinationBranch, fileDiff, existingComments: Comment[], draft }`
-- [ ] Implement `formatCommentsForPrompt(comments: Comment[]): string` — format comment threads as readable text for the agent
-- [ ] Implement `buildRefinementPrompt(input: RefinementPromptInput): string` — full prompt with context + instructions
-- [ ] Define `RejectionPromptInput` extending `RefinementPromptInput` with `{ previousSuggestion, rejectionReason }`
-- [ ] Implement `buildRejectionPrompt(input: RejectionPromptInput): string` — includes previous suggestion + feedback
-- [ ] Write unit tests verifying: all fields present in output, edge cases (no existing comments, no line number, empty draft)
+- [x] Create `src/services/prompt.ts`
+- [x] Define `RefinementPromptInput` type: `{ filePath, lineNumber, prId, prTitle, sourceBranch, destinationBranch, fileDiff, existingComments: Comment[], draft }`
+- [x] Implement `formatCommentsForPrompt(comments: Comment[]): string` — format comment threads as readable text for the agent
+- [x] Implement `buildRefinementPrompt(input: RefinementPromptInput): string` — full prompt with context + instructions
+- [x] Define `RejectionPromptInput` extending `RefinementPromptInput` with `{ previousSuggestion, rejectionReason }`
+- [x] Implement `buildRejectionPrompt(input: RejectionPromptInput): string` — includes previous suggestion + feedback
+- [x] Write unit tests verifying: all fields present in output, edge cases (no existing comments, no line number, empty draft)
 
 ## Prompt Template
 
