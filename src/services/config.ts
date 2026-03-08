@@ -3,10 +3,12 @@ import { homedir } from "os";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { stringify, parse } from "yaml";
 
+import type { AgentConfig } from "../types/agent";
+
 export interface OpaliteConfig {
   workspace: string;
   repos: string[];
-  agent?: string;
+  agent?: AgentConfig;
   autoRefreshInterval?: number;
 }
 

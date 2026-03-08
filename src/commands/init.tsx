@@ -122,7 +122,7 @@ export async function runInit(
         console.log(`  Workspace: ${config.workspace}`);
         console.log(`  Repos: ${config.repos.join(", ")}`);
         if (config.agent) {
-          console.log(`  Agent: ${config.agent}`);
+          console.log(`  Agent: ${config.agent.default}`);
         }
 
         process.exit(0);

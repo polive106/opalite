@@ -19,13 +19,13 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/types/agent.ts` with `AgentConfig` type: `{ default: string, [agentName]: { interactive, print, print_json } }`
-- [ ] Create `src/services/agent.ts`
-- [ ] Implement `getAgentConfig(config: OpaliteConfig): AgentConfig | null` — read agent config, return null if not configured
-- [ ] Implement `buildAgentCommand(template: string): string[]` — parse command template into command + args array
-- [ ] Implement `queryAgent(prompt: string, config: OpaliteConfig): Promise<string | null>` — spawn in print mode, pipe prompt via stdin, capture stdout, return text
-- [ ] Handle edge cases: agent not installed (ENOENT → clear error), timeout (60s), non-zero exit (throw with stderr), empty output (throw)
-- [ ] Write unit tests with mocked `Bun.spawn()`
+- [x] Create `src/types/agent.ts` with `AgentConfig` type: `{ default: string, [agentName]: { interactive, print, print_json } }`
+- [x] Create `src/services/agent.ts`
+- [x] Implement `getAgentConfig(config: OpaliteConfig): AgentConfig | null` — read agent config, return null if not configured
+- [x] Implement `buildAgentCommand(template: string): string[]` — parse command template into command + args array
+- [x] Implement `queryAgent(prompt: string, config: OpaliteConfig): Promise<string | null>` — spawn in print mode, pipe prompt via stdin, capture stdout, return text
+- [x] Handle edge cases: agent not installed (ENOENT → clear error), timeout (60s), non-zero exit (throw with stderr), empty output (throw)
+- [x] Write unit tests with mocked `Bun.spawn()`
 
 ## Files to Create/Modify
 
