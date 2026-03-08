@@ -1,4 +1,6 @@
-# US-19: AI comment assist
+# US-19: AI comment assist (SUPERSEDED)
+
+> **SUPERSEDED by EP-01 (AI-Assisted Review)** — The Tab-to-suggest approach has been replaced by a richer conversational refinement loop. See `docs/epics/EP-01-ai-assisted-review.md` and stories US-23 through US-27.
 
 ## User Story
 

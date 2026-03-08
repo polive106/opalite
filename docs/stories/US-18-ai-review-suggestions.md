@@ -1,4 +1,6 @@
-# US-18: AI review suggestions
+# US-18: AI review suggestions (DEFERRED — Phase B of EP-01)
+
+> **DEFERRED** — This story is now Phase B of the AI-Assisted Review epic. It will be reworked as an "AI second pass" that runs after the manual review, using the full context of existing comments + comments just written. See `docs/epics/EP-01-ai-assisted-review.md`. Depends on US-23 (agent service) and US-24 (prompt builder) being complete first.
 
 ## User Story
 

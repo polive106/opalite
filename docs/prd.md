@@ -9,7 +9,7 @@
 
 opalite is a terminal-based PR review and fix tool for Bitbucket Cloud. It has two modes:
 
-1. **Reviewer mode** — A dashboard showing all open PRs across multiple repos (inspired by gh-dash). Users browse diffs, leave comments, and approve — all from the terminal.
+1. **Reviewer mode** — A dashboard showing all open PRs across multiple repos (inspired by gh-dash). Browse diffs, leave comments, and approve — all from the terminal. When writing review comments, an AI agent (Claude Code / Cursor CLI) refines your draft into clearer, more constructive feedback through a conversational loop. After your manual review, the AI does a second pass to catch anything you missed.
 2. **Author mode** — Shows unresolved comments on your own PRs. Press `f` to spawn an AI agent (Claude Code or Cursor CLI) that fixes the comment. Review the agent's diff, accept, and auto-commit+push — without leaving the terminal.
 
 ---
@@ -829,19 +829,37 @@ All use `Bun.spawn()` with `cwd: getRepoRoot()`.
 
 ---
 
-## Phase 4: Polish
+## Phase 4: AI-Assisted Review
 
-### 4.1 — AI review suggestions (reviewer mode)
+> Full epic spec: `docs/epics/EP-01-ai-assisted-review.md`
 
-When reviewing a diff in DiffNav, user can press a key to get AI review suggestions.
+### 4.1 — AI comment refinement (reviewer mode)
 
-Uses `queryAgentJSON()` with a review prompt. Displays suggestions inline in the diff view.
+When a reviewer writes a comment and submits it, the configured AI agent refines the draft into a clearer, more constructive comment. The reviewer sees their draft alongside the suggestion and can:
+- **Accept** the refined version
+- **Skip** and post the original
+- **Edit** the suggestion manually
+- **Reject with feedback** — explain why, and the agent tries again (conversational loop until satisfied)
 
-### 4.2 — AI comment assist
+This uses `queryAgent()` in print mode. The prompt includes: the file diff, existing comments, and the reviewer's draft. If no agent is configured, comments post directly (existing behavior).
 
-When typing a comment in CommentEditor, press `Tab` to get an AI-suggested comment.
+**Stories:** US-23 (agent service), US-24 (prompt builder), US-25 (refinement hook), US-26 (refinement widget), US-27 (DiffNav integration)
 
-Uses `queryAgent()` with the code context and line number.
+### 4.2 — AI second pass (reviewer mode, future)
+
+After the manual review is complete, the AI does a second pass over the entire PR diff. It has full context: the diff, all existing comments (from automated reviewers + other humans), and the comments the reviewer just wrote. It proposes additional comments for anything that was missed. The reviewer triages these one by one.
+
+This builds on the agent service and prompt builder from 4.1. Separate epic to be written.
+
+### 4.3 — Themes
+
+Support for multiple themes: Tokyo Night (default), GitHub Dark, Catppuccin.
+
+Configurable via `display.theme` in config.
+
+### 4.4 — Export prompt
+
+From CommentQueue, press `e` to copy the agent prompt to clipboard for manual pasting into an agent outside of opalite.
 
 ### 4.3 — Themes
 
@@ -948,8 +966,9 @@ It does:
 2. **Two config files.** Shared team config in repo root, personal auth+agent config in `~/.config/`. The CLI merges them.
 3. **OpenTUI, not Ink.** OpenTUI has built-in `<diff>`, `<code>`, and `<scroll-box>` components. Ink would require building all of these from scratch.
 4. **Bun only.** Required by OpenTUI. Not a problem — opalite is a standalone CLI tool, not a library consumed by other projects.
-5. **Agent-agnostic.** The agent config uses command templates with `{prompt}` placeholder. Works with any CLI agent that supports interactive and print modes.
-6. **Phase 1 first.** Dashboard is the MVP. It solves "nobody reviews" by making the backlog visible. Author mode (the wow feature) comes in Phase 3.
+5. **Agent-agnostic.** The agent config uses command templates with `{prompt}` placeholder. Works with any CLI agent that supports interactive and print modes (Claude Code, Cursor CLI, or any future agent).
+6. **AI assists humans, doesn't replace them.** The AI refines reviewer comments and catches missed issues, but the human always has final say. Every AI suggestion goes through accept/reject/edit. The company's automated AI reviewer handles the first pass; opalite's AI helps during and after the human review.
+7. **Phase 1 first.** Dashboard is the MVP. It solves "nobody reviews" by making the backlog visible. AI-assisted review builds on the manual review foundation.
 
 ---
 
@@ -1353,39 +1372,102 @@ docs/stories/
 
 ---
 
-### Phase 5 — Polish
+### Phase 5 — AI-Assisted Review
 
-*Can be worked on independently after Phase 2 is complete.*
+> Full epic spec: `docs/epics/EP-01-ai-assisted-review.md`
 
-#### US-18: AI review suggestions
+*Requires Phase 3 (Inline Review) to be complete. Stories US-23, US-24, US-26 can be worked on in parallel.*
 
-**As a** reviewer,
-**I want** opalite to suggest review comments using the AI agent,
-**so that** I can catch issues I might miss.
+#### US-23: Agent service (print mode)
+
+**As a** developer,
+**I want** a service that spawns the configured agent CLI and captures its output,
+**so that** AI features can query the agent programmatically.
 
 **Acceptance Criteria:**
-- In DiffNav, a keyboard shortcut triggers AI review on the current file
-- The agent is called in non-interactive print mode with JSON output
-- Suggestions are displayed inline in the diff with severity indicators (critical, improvement, nitpick)
-- The user can convert a suggestion into a posted comment with one keypress
-- Existing comments are included in the prompt to avoid duplicates
+- `queryAgent(prompt, config)` spawns the agent in print mode and returns stdout as a string
+- The command is built from the config template by replacing `{prompt}` with the actual prompt
+- The prompt is passed via stdin (piped) to avoid shell escaping issues
+- If no agent is configured, `queryAgent` returns `null` (graceful degradation)
+- Timeout of 60 seconds — if the agent doesn't respond, the promise rejects
 
-**Implementation:** AI review logic in `src/services/agent.ts`, display in `DiffNav.tsx`
+**Implementation:** `src/services/agent.ts`, `src/types/agent.ts`
 
 ---
 
-#### US-19: AI comment assist
+#### US-24: Comment refinement prompt builder
 
-**As a** reviewer,
-**I want to** press Tab while writing a comment to get an AI-suggested comment,
-**so that** I can write better review comments faster.
+**As a** developer,
+**I want** a function that builds a well-structured prompt for comment refinement,
+**so that** the agent has all the context it needs to improve a review comment.
 
 **Acceptance Criteria:**
-- When the comment editor is open, pressing `Tab` calls the agent in print mode with the code context
-- The suggestion appears in the editor and can be accepted (Enter), edited, or dismissed (Esc)
-- The suggestion is concise (1-2 sentences) and actionable
+- `buildRefinementPrompt(input)` returns a prompt containing: file path, line number, PR metadata, file diff, existing comments, and the reviewer's draft
+- `buildRejectionPrompt(input)` extends the prompt with the previous suggestion and the reviewer's feedback
+- Existing comments are formatted readably for the agent
 
-**Implementation:** Tab-complete in `src/widgets/CommentEditor.tsx`
+**Implementation:** `src/services/prompt.ts`
+
+---
+
+#### US-25: Comment refinement loop hook
+
+**As a** developer,
+**I want** a hook that manages the refinement loop state machine,
+**so that** the UI can drive the accept/reject/edit cycle.
+
+**Acceptance Criteria:**
+- State machine: idle → loading → suggestion → (accept | skip | edit | reject+feedback → loading → ...)
+- Multi-round: each rejection appends to history, prompt includes conversation context
+- If no agent configured, immediately returns the original draft (no refinement)
+
+**Implementation:** `src/features/diff-review/hooks/useCommentRefinement.ts`
+
+**Dependencies:** US-23, US-24
+
+---
+
+#### US-26: Comment refinement widget
+
+**As a** reviewer,
+**I want to** see my draft comment alongside the AI's suggested refinement,
+**so that** I can decide whether to accept, edit, reject, or skip.
+
+**Acceptance Criteria:**
+- Shows original draft and AI suggestion vertically stacked
+- Loading state while agent processes, error state with fallback to post original
+- Keybindings: `a` accept, `s` skip, `e` edit, `r` reject+feedback
+- Rejection mode shows an input field for feedback
+
+**Implementation:** `src/features/diff-review/widgets/CommentRefinement.tsx`
+
+---
+
+#### US-27: Wire refinement into DiffNav comment flow
+
+**As a** reviewer,
+**I want** the refinement loop to appear automatically after I write a comment,
+**so that** I get AI help without extra steps.
+
+**Acceptance Criteria:**
+- Submitting a comment triggers refinement instead of posting directly (when agent is configured)
+- Accept posts refined text, Skip posts original, Edit loads suggestion back into editor, Reject loops
+- If no agent configured, comment posts directly (existing behavior unchanged)
+- Esc cancels entirely (no comment posted)
+
+**Implementation:** Modify `DiffNav.tsx` and `useCommentEditor.ts`
+
+**Dependencies:** US-23, US-24, US-25, US-26
+
+---
+
+#### US-18: AI second pass (future — separate epic)
+
+**As a** reviewer,
+**I want** the AI to do a second pass after my manual review to catch what I missed,
+**so that** reviews are more thorough.
+
+**Note:** This story is deferred to a separate epic that builds on the agent service and prompt builder from US-23/US-24. The previous US-18 (inline AI suggestions) and US-19 (Tab-to-suggest in editor) are superseded by the richer refinement loop in US-25-27.
 
 ---
 

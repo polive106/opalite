@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   fetchDiffStatFiles,
   fetchPRDiff,
   type DiffStatFile,
 } from "../../../services/bitbucket";
+import { queryKeys } from "../../../services/queryKeys";
 import type { AuthData } from "../../../services/auth";
 
 export interface DiffFileContent {
@@ -55,44 +56,25 @@ export function useDiff(
   repo: string,
   prId: number
 ): UseDiffResult {
-  const [files, setFiles] = useState<DiffStatFile[]>([]);
-  const [fileDiffs, setFileDiffs] = useState<DiffFileContent[]>([]);
-  const [rawDiff, setRawDiff] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  const { data, isLoading: loading, error: queryError } = useQuery({
+    queryKey: queryKeys.diff(workspace, repo, prId),
+    queryFn: async () => {
       const [diffStatFiles, diff] = await Promise.all([
         fetchDiffStatFiles(auth, workspace, repo, prId),
         fetchPRDiff(auth, workspace, repo, prId),
       ]);
-      if (mountedRef.current) {
-        setFiles(diffStatFiles);
-        setRawDiff(diff);
-        setFileDiffs(parseDiffToFiles(diff));
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Failed to fetch diff");
-      }
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [auth, workspace, repo, prId]);
+      return { files: diffStatFiles, rawDiff: diff, fileDiffs: parseDiffToFiles(diff) };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchData();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchData]);
+  const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch diff") : null;
 
-  return { files, fileDiffs, rawDiff, loading, error };
+  return {
+    files: data?.files ?? [],
+    fileDiffs: data?.fileDiffs ?? [],
+    rawDiff: data?.rawDiff ?? "",
+    loading,
+    error,
+  };
 }

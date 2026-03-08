@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export const DEFAULT_AUTO_REFRESH_INTERVAL = 120;
 import { fetchOpenPRsForAllRepos } from "../../../services/bitbucket";
+import { queryClient } from "../../../services/queryClient";
+import { queryKeys } from "../../../services/queryKeys";
 import type { AuthData } from "../../../services/auth";
 import type { PR, RepoGroup } from "../../../types/review";
 
@@ -105,54 +107,23 @@ export function usePRs(
   repos: string[],
   autoRefreshInterval: number = DEFAULT_AUTO_REFRESH_INTERVAL
 ): UsePRsResult {
-  const [prs, setPrs] = useState<PR[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastFetch, setLastFetch] = useState<Date | null>(null);
-  const mountedRef = useRef(true);
+  const { data: prs = [], isLoading: loading, error: queryError, dataUpdatedAt } = useQuery({
+    queryKey: queryKeys.prs(workspace, repos),
+    queryFn: () => fetchOpenPRsForAllRepos(auth, workspace, repos),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: autoRefreshInterval > 0 ? autoRefreshInterval * 1000 : false,
+  });
 
-  const fetchPRs = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fetchOpenPRsForAllRepos(auth, workspace, repos);
-      if (mountedRef.current) {
-        setPrs(result);
-        setLastFetch(new Date());
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch PRs"
-        );
-      }
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [auth, workspace, repos.join(",")]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchPRs();
-
-    if (autoRefreshInterval > 0) {
-      const intervalId = setInterval(fetchPRs, autoRefreshInterval * 1000);
-      return () => {
-        mountedRef.current = false;
-        clearInterval(intervalId);
-      };
-    }
-
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchPRs, autoRefreshInterval]);
+  const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch PRs") : null;
+  const lastFetch = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
 
   const now = new Date();
   const groups = groupByRepo(prs);
   const summary = computeSummary(prs, now);
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.prs(workspace, repos) });
+  };
 
   return {
     prs,
@@ -161,6 +132,6 @@ export function usePRs(
     error,
     lastFetch,
     summary,
-    refresh: fetchPRs,
+    refresh,
   };
 }

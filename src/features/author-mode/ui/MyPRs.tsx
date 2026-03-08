@@ -4,6 +4,7 @@ import { useMyPRs, getReviewerSummary } from "../hooks/useMyPRs";
 import { useMyPRsNavigation } from "../hooks/useMyPRsNavigation";
 import { MyPRRow, formatMyPRRow } from "../widgets/MyPRRow";
 import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
+import { RefreshIndicator } from "../../shared/widgets/RefreshIndicator";
 import type { AuthData } from "../../../services/auth";
 import type { Screen } from "../../../App";
 
@@ -98,7 +99,8 @@ export function MyPRsScreen({
       <box flexDirection="row" paddingX={1} paddingTop={1}>
         <text fg={theme.accent}>opalite</text>
         <box flexGrow={1} />
-        <text fg={theme.dimmed}>My PRs</text>
+        <RefreshIndicator />
+        <text fg={theme.dimmed}> My PRs</text>
       </box>
 
       {/* Subheader */}

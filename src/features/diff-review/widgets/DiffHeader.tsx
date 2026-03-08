@@ -1,5 +1,6 @@
 import { theme } from "../../../theme/tokyo-night";
 import { formatAge } from "../../dashboard/hooks/usePRs";
+import { RefreshIndicator } from "../../shared/widgets/RefreshIndicator";
 import type { PR } from "../../../types/review";
 
 export interface DiffHeaderData {
@@ -35,7 +36,8 @@ export function DiffHeader({ data }: DiffHeaderProps) {
         <text fg={theme.accent}>{`#${data.prNumber}`}</text>
         <text fg={theme.fg}> {data.title}</text>
         <box flexGrow={1} />
-        <text fg={theme.dimmed}>{data.age}</text>
+        <RefreshIndicator />
+        <text fg={theme.dimmed}> {data.age}</text>
       </box>
       <box flexDirection="row">
         <text fg={theme.dimmed}>{data.repo} · </text>

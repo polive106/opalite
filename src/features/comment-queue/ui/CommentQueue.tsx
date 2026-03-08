@@ -5,6 +5,7 @@ import { useCommentQueue, buildCommentThread } from "../hooks/useCommentQueue";
 import { useCommentQueueNavigation } from "../hooks/useCommentQueueNavigation";
 import { CommentRow, formatCommentRow } from "../widgets/CommentRow";
 import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
+import { RefreshIndicator } from "../../shared/widgets/RefreshIndicator";
 import type { AuthData } from "../../../services/auth";
 import type { PR, Comment } from "../../../types/review";
 import type { Screen } from "../../../App";
@@ -135,7 +136,8 @@ export function CommentQueueScreen({
       <box flexDirection="row" paddingX={1} paddingTop={1}>
         <text fg={theme.accent}>opalite</text>
         <box flexGrow={1} />
-        <text fg={theme.dimmed}>Comment Queue</text>
+        <RefreshIndicator />
+        <text fg={theme.dimmed}> Comment Queue</text>
       </box>
 
       {/* Subheader: PR info */}

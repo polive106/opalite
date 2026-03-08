@@ -4,6 +4,7 @@ import { usePRs, formatLastFetch, DEFAULT_AUTO_REFRESH_INTERVAL } from "../hooks
 import { useDashboardNavigation } from "../hooks/useDashboardNavigation";
 import { PRRow, formatPRRow } from "../widgets/PRRow";
 import { KeyBar, type KeyBinding } from "../../shared/widgets/KeyBar";
+import { RefreshIndicator } from "../../shared/widgets/RefreshIndicator";
 import type { AuthData } from "../../../services/auth";
 import type { PR } from "../../../types/review";
 import type { Screen } from "../../../App";
@@ -113,7 +114,8 @@ export function Dashboard({
       <box flexDirection="row" paddingX={1} paddingTop={1}>
         <text fg={theme.accent}>opalite</text>
         <box flexGrow={1} />
-        <text fg={theme.dimmed}>{workspace}</text>
+        <RefreshIndicator />
+        <text fg={theme.dimmed}> {workspace}</text>
       </box>
 
       {/* Subheader */}
