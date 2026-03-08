@@ -1,9 +1,12 @@
 import { useState, useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   approvePR,
   requestChangesPR,
   postPRComment,
 } from "../../../services/bitbucket";
+import { queryClient } from "../../../services/queryClient";
+import { queryKeys } from "../../../services/queryKeys";
 import type { AuthData } from "../../../services/auth";
 
 export type ReviewAction = "approve" | "request-changes" | "comment";
@@ -76,6 +79,26 @@ export function useReviewSubmit(
     initReviewState(initialAction)
   );
 
+  const mutation = useMutation({
+    mutationFn: async ({ action, comment }: { action: ReviewAction; comment: string }) => {
+      if (comment.trim() !== "") {
+        await postPRComment(auth, workspace, repo, prId, {
+          content: comment,
+        });
+      }
+
+      if (action === "approve") {
+        await approvePR(auth, workspace, repo, prId);
+      } else if (action === "request-changes") {
+        await requestChangesPR(auth, workspace, repo, prId);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prs(workspace, [repo]) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comments(workspace, repo, prId) });
+    },
+  });
+
   const changeAction = useCallback((action: ReviewAction) => {
     setState((prev) => setReviewAction(prev, action));
   }, []);
@@ -88,18 +111,10 @@ export function useReviewSubmit(
     setState((prev) => setSubmitting(prev, true));
 
     try {
-      if (state.generalComment.trim() !== "") {
-        await postPRComment(auth, workspace, repo, prId, {
-          content: state.generalComment,
-        });
-      }
-
-      if (state.action === "approve") {
-        await approvePR(auth, workspace, repo, prId);
-      } else if (state.action === "request-changes") {
-        await requestChangesPR(auth, workspace, repo, prId);
-      }
-
+      await mutation.mutateAsync({
+        action: state.action,
+        comment: state.generalComment,
+      });
       setState((prev) => ({ ...prev, submitting: false, submitted: true }));
       return true;
     } catch (err) {
@@ -108,7 +123,7 @@ export function useReviewSubmit(
       setState((prev) => setError(prev, message));
       return false;
     }
-  }, [auth, workspace, repo, prId, state]);
+  }, [mutation, state.action, state.generalComment]);
 
   return { state, changeAction, changeComment, submit };
 }

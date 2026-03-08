@@ -10,6 +10,8 @@ import { loadAuthFile } from "./services/auth";
 import { loadConfig, mergeConfigs } from "./services/config";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./services/queryClient";
 import { App } from "./App";
 
 const args = process.argv.slice(2);
@@ -87,13 +89,15 @@ switch (parsed.action) {
         useAlternateScreen: true,
       });
       createRoot(renderer).render(
-        <App
-          auth={auth}
-          workspace={config.workspace}
-          repos={config.repos}
-          autoRefreshInterval={config.autoRefreshInterval}
-          initialScreen={{ name: "my-prs" }}
-        />
+        <QueryClientProvider client={queryClient}>
+          <App
+            auth={auth}
+            workspace={config.workspace}
+            repos={config.repos}
+            autoRefreshInterval={config.autoRefreshInterval}
+            initialScreen={{ name: "my-prs" }}
+          />
+        </QueryClientProvider>
       );
       break;
     }
@@ -145,12 +149,14 @@ switch (parsed.action) {
       useAlternateScreen: true,
     });
     createRoot(renderer).render(
-      <App
-        auth={auth}
-        workspace={config.workspace}
-        repos={config.repos}
-        autoRefreshInterval={config.autoRefreshInterval}
-      />
+      <QueryClientProvider client={queryClient}>
+        <App
+          auth={auth}
+          workspace={config.workspace}
+          repos={config.repos}
+          autoRefreshInterval={config.autoRefreshInterval}
+        />
+      </QueryClientProvider>
     );
     break;
   }

@@ -4,10 +4,10 @@
 
 opalite is a terminal-based PR review and fix tool for Bitbucket Cloud. Two modes:
 
-1. **Reviewer mode** — Dashboard showing open PRs across repos. Browse diffs, leave comments, approve — all from the terminal.
-2. **Author mode** — Shows unresolved comments on your PRs. Spawn an AI agent (Claude Code / Cursor CLI) to fix comments, review the diff, accept & commit+push.
+1. **Reviewer mode** — Dashboard showing open PRs across repos. Browse diffs, leave comments, approve — all from the terminal. AI agent (Claude Code / Cursor CLI) refines your review comments through a conversational loop (accept/reject/edit), then does a second pass to catch missed issues.
+2. **Author mode** — Shows unresolved comments on your PRs. Spawn an AI agent to fix comments, review the diff, accept & commit+push.
 
-Full spec: `docs/prd.md`
+Full spec: `docs/prd.md` | AI review epic: `docs/epics/EP-01-ai-assisted-review.md`
 
 ## Tech stack
 
@@ -124,7 +124,8 @@ After merging, `npx changeset version` consumes changeset files and bumps `packa
 
 - **Screen routing**: `App.tsx` uses `useState<Screen>` with a discriminated union. Pass `navigate` function to all screens.
 - **Data fetching**: Custom hooks (`usePRs`, `useDiff`, etc.) handle fetch + state. Return `{ data, loading, error, refresh }`.
-- **Agent spawning**: Command templates with `{prompt}` placeholder from config. Three modes: interactive (stdio inherited), print (capture stdout), print JSON (parse JSON output).
+- **Agent spawning**: Command templates with `{prompt}` placeholder from config. Three modes: interactive (stdio inherited), print (capture stdout), print JSON (parse JSON output). Agent CLI is configurable (Claude Code or Cursor CLI). Service: `src/services/agent.ts`.
+- **AI comment refinement**: When a reviewer writes a comment, the agent refines it via a conversational loop (draft → suggestion → accept/reject/edit). Hook: `useCommentRefinement`. Widget: `CommentRefinement`. Prompts: `src/services/prompt.ts`. Full spec: `docs/epics/EP-01-ai-assisted-review.md`.
 - **Git operations**: All via `Bun.spawn()` with `cwd: getRepoRoot()`. Wrapped in `src/services/git.ts`.
 
 ## Testing architecture
@@ -263,4 +264,5 @@ Stories are tracked as individual markdown files under `docs/stories/`. Each con
 2. **Review Dashboard** (US-5 to US-7): PR list, navigation, screen routing
 3. **Inline Review** (US-8 to US-11): diff view, comments, approve/request changes
 4. **Author Mode** (US-12 to US-17): my PRs, comment queue, agent fix, batch fix
-5. **Polish** (US-18 to US-21): AI suggestions, themes, clipboard export
+5. **AI-Assisted Review** (US-23 to US-27): agent service, comment refinement loop, AI second pass. See `docs/epics/EP-01-ai-assisted-review.md`
+6. **Polish** (US-20 to US-21): themes, clipboard export

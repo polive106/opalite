@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchPRComments } from "../../../services/bitbucket";
+import { queryClient } from "../../../services/queryClient";
+import { queryKeys } from "../../../services/queryKeys";
 import type { AuthData } from "../../../services/auth";
 import type { Comment } from "../../../types/review";
 
@@ -79,41 +81,21 @@ export function useComments(
   repo: string,
   prId: number
 ): UseCommentsResult {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
+  const { data: comments = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: queryKeys.comments(workspace, repo, prId),
+    queryFn: () => fetchPRComments(auth, workspace, repo, prId),
+    staleTime: 1 * 60 * 1000,
+  });
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fetchPRComments(auth, workspace, repo, prId);
-      if (mountedRef.current) {
-        setComments(result);
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Failed to fetch comments");
-      }
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [auth, workspace, repo, prId]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchData();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchData]);
+  const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch comments") : null;
 
   const threads = buildCommentThreads(comments);
   const grouped = groupCommentsByFile(threads);
   const fileCommentCounts = getFileCommentCounts(comments);
 
-  return { comments, threads, grouped, fileCommentCounts, loading, error, refresh: fetchData };
+  const refresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.comments(workspace, repo, prId) });
+  };
+
+  return { comments, threads, grouped, fileCommentCounts, loading, error, refresh };
 }

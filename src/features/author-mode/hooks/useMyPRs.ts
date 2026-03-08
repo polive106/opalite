@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchOpenPRsForAllRepos, fetchPRComments } from "../../../services/bitbucket";
+import { queryClient } from "../../../services/queryClient";
+import { queryKeys } from "../../../services/queryKeys";
 import type { AuthData } from "../../../services/auth";
 import type { PR, Comment } from "../../../types/review";
 
@@ -40,22 +42,11 @@ export function useMyPRs(
   repos: string[],
   username: string
 ): UseMyPRsResult {
-  const [myPRs, setMyPRs] = useState<PR[]>([]);
-  const [unresolvedCounts, setUnresolvedCounts] = useState<Map<number, number>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  const { data, isLoading: loading, error: queryError } = useQuery({
+    queryKey: queryKeys.myPRs(workspace, repos, username),
+    queryFn: async () => {
       const allPRs = await fetchOpenPRsForAllRepos(auth, workspace, repos);
       const filtered = filterMyPRs(allPRs, username);
-      if (!mountedRef.current) return;
-      setMyPRs(filtered);
-
-      // Fetch unresolved comment counts for each PR
       const counts = new Map<number, number>();
       await Promise.all(
         filtered.map(async (pr) => {
@@ -63,27 +54,22 @@ export function useMyPRs(
           counts.set(pr.id, countUnresolved(comments));
         })
       );
-      if (mountedRef.current) {
-        setUnresolvedCounts(counts);
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Failed to fetch PRs");
-      }
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [auth, workspace, repos.join(","), username]);
+      return { myPRs: filtered, unresolvedCounts: counts };
+    },
+    staleTime: 2 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchData();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchData]);
+  const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch PRs") : null;
 
-  return { myPRs, unresolvedCounts, loading, error, refresh: fetchData };
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.myPRs(workspace, repos, username) });
+  };
+
+  return {
+    myPRs: data?.myPRs ?? [],
+    unresolvedCounts: data?.unresolvedCounts ?? new Map(),
+    loading,
+    error,
+    refresh,
+  };
 }

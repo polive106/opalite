@@ -143,7 +143,7 @@ export function DiffNav({ auth, workspace, pr, goBack, navigate }: DiffNavProps)
   const treeWidth = Math.min(FILE_TREE_WIDTH, Math.floor(width * 0.3));
   const diffWidth = width - treeWidth - 1;
 
-  if (loading) {
+  if (loading && files.length === 0) {
     return (
       <box
         width={width}

@@ -38,6 +38,7 @@
 
 - US-14 (prompt generation)
 - US-3 (agent config from init)
+- US-23 (agent service — `src/services/agent.ts` is now created by US-23 with print mode; this story adds interactive mode to the same service)
 
 ## Phase
 
