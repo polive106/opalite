@@ -1,5 +1,17 @@
 # opalite
 
+## 0.4.0
+
+### Minor Changes
+
+- 99163d9: Add comment fix queue screen for PR authors to view and manage unresolved comments. Includes keyboard navigation (j/k), resolve (v), reply (r), agent fix (f/F), and clipboard export (e).
+- 06e77f7: Integrate TanStack Query for cached data fetching, eliminating loading flicker on screen transitions.
+
+### Patch Changes
+
+- 4063b84: Add project README with installation instructions, usage guide, and configuration docs.
+- f73a9e1: Fix `c` and `r` keys not working on diff review screen when file tree is focused.
+
 ## 0.3.0
 
 ### Minor Changes
