@@ -23,19 +23,19 @@
 
 ## Technical Tasks
 
-- [ ] Modify `DiffNav.tsx`: import and use `useCommentRefinement()` hook
-- [ ] Modify comment submit flow: `handleSubmit` triggers `refinement.refine(draft, context)` instead of `editor.submit()`
-- [ ] Build refinement context from DiffNav state: current file diff (`fileDiffs[selectedFileIndex]`), existing comments for current file (`grouped.fileComments[filePath]`), PR metadata
-- [ ] Add keyboard handler for refinement state: `a` → accept, `s` → skip, `e` → edit, `r` → enter feedback mode, `Esc` → cancel
-- [ ] Add keyboard handler for feedback sub-state: `Enter` → send feedback, `Esc` → back to suggestion
-- [ ] Render `CommentRefinement` widget when `refinement.state.status !== 'idle'` (replaces `CommentEditor` in layout)
-- [ ] On accept: call `postPRComment()` with refined text + original inline/reply metadata, refresh comments, close refinement
-- [ ] On skip: call `postPRComment()` with original draft + metadata, refresh comments, close refinement
-- [ ] On edit: set CommentEditor text to refined suggestion, close refinement, re-open editor in edit mode
-- [ ] Suppress DiffNav and CommentEditor keybindings when refinement is active (add `refinementActive` check alongside existing `editorOpen` check)
-- [ ] Handle graceful degradation: if `queryAgent()` returns null (no agent), post comment directly (same as current behavior)
-- [ ] Modify `useCommentEditor.ts`: decouple "submit" from "post to Bitbucket" — expose `getDraft()` that returns the current text + metadata without posting, so DiffNav can pass the draft to refinement
-- [ ] Write integration test: mock fetch + mock agent → full flow: write draft → refinement shows → accept → comment posted to Bitbucket
+- [x] Modify `DiffNav.tsx`: import and use `useCommentRefinement()` hook
+- [x] Modify comment submit flow: `handleSubmit` triggers `refinement.refine(draft, context)` instead of `editor.submit()`
+- [x] Build refinement context from DiffNav state: current file diff (`fileDiffs[selectedFileIndex]`), existing comments for current file (`grouped.fileComments[filePath]`), PR metadata
+- [x] Add keyboard handler for refinement state: `a` → accept, `s` → skip, `e` → edit, `r` → enter feedback mode, `Esc` → cancel
+- [x] Add keyboard handler for feedback sub-state: `Enter` → send feedback, `Esc` → back to suggestion
+- [x] Render `CommentRefinement` widget when `refinement.state.status !== 'idle'` (replaces `CommentEditor` in layout)
+- [x] On accept: call `postPRComment()` with refined text + original inline/reply metadata, refresh comments, close refinement
+- [x] On skip: call `postPRComment()` with original draft + metadata, refresh comments, close refinement
+- [x] On edit: set CommentEditor text to refined suggestion, close refinement, re-open editor in edit mode
+- [x] Suppress DiffNav and CommentEditor keybindings when refinement is active (add `refinementActive` check alongside existing `editorOpen` check)
+- [x] Handle graceful degradation: if `queryAgent()` returns null (no agent), post comment directly (same as current behavior)
+- [x] Modify `useCommentEditor.ts`: decouple "submit" from "post to Bitbucket" — expose `getDraft()` that returns the current text + metadata without posting, so DiffNav can pass the draft to refinement
+- [x] Write integration test: mock fetch + mock agent → full flow: write draft → refinement shows → accept → comment posted to Bitbucket
 
 ## Wiring Diagram
 

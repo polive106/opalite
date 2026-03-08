@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   type CommentEditorState,
+  type DraftData,
   initialCommentEditorState,
   openInlineEditor,
   openReplyEditor,
@@ -9,6 +10,7 @@ import {
   setEditorSubmitting,
   setEditorError,
   buildPostInput,
+  getDraft,
   handleCommentEditorKey,
 } from "../../../../src/features/diff-review/hooks/useCommentEditor";
 
@@ -151,6 +153,53 @@ describe("CommentEditor state management", () => {
     expect(input.content).toBe("Overall LGTM");
     expect(input.inline).toBeUndefined();
     expect(input.parentId).toBeUndefined();
+  });
+});
+
+describe("getDraft", () => {
+  it("should return draft data with text and inline metadata", () => {
+    const state: CommentEditorState = {
+      ...openInlineEditor("src/auth.ts", 45),
+      text: "This needs error handling",
+    };
+
+    const draft = getDraft(state);
+
+    expect(draft.text).toBe("This needs error handling");
+    expect(draft.filePath).toBe("src/auth.ts");
+    expect(draft.lineNumber).toBe(45);
+    expect(draft.parentCommentId).toBeUndefined();
+  });
+
+  it("should return draft data with reply metadata", () => {
+    const state: CommentEditorState = {
+      ...openReplyEditor(200),
+      text: "Good catch",
+    };
+
+    const draft = getDraft(state);
+
+    expect(draft.text).toBe("Good catch");
+    expect(draft.parentCommentId).toBe(200);
+    expect(draft.filePath).toBeUndefined();
+    expect(draft.lineNumber).toBeUndefined();
+  });
+
+  it("should return draft data for general comment (no file/line/parent)", () => {
+    const state: CommentEditorState = {
+      isOpen: true,
+      mode: "inline",
+      text: "Overall LGTM",
+      submitting: false,
+      error: null,
+    };
+
+    const draft = getDraft(state);
+
+    expect(draft.text).toBe("Overall LGTM");
+    expect(draft.filePath).toBeUndefined();
+    expect(draft.lineNumber).toBeUndefined();
+    expect(draft.parentCommentId).toBeUndefined();
   });
 });
 

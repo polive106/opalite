@@ -256,6 +256,47 @@ export async function rejectSuggestion(
   }
 }
 
+// ─── Keyboard handler ───
+
+export type RefinementKeyAction =
+  | { action: "accept" }
+  | { action: "skip" }
+  | { action: "edit" }
+  | { action: "enter-feedback" }
+  | { action: "send-feedback" }
+  | { action: "exit-feedback" }
+  | { action: "cancel" }
+  | { action: "none" };
+
+export function handleRefinementKey(
+  keyName: string,
+  status: RefinementStatus,
+  feedbackMode: boolean
+): RefinementKeyAction {
+  // Feedback sub-state: Enter sends, Esc exits feedback
+  if (feedbackMode) {
+    if (keyName === "return") return { action: "send-feedback" };
+    if (keyName === "escape") return { action: "exit-feedback" };
+    return { action: "none" };
+  }
+
+  // Esc cancels from any state
+  if (keyName === "escape") return { action: "cancel" };
+
+  if (status === "suggestion") {
+    if (keyName === "a") return { action: "accept" };
+    if (keyName === "s") return { action: "skip" };
+    if (keyName === "e") return { action: "edit" };
+    if (keyName === "r") return { action: "enter-feedback" };
+  }
+
+  if (status === "error") {
+    if (keyName === "s") return { action: "skip" };
+  }
+
+  return { action: "none" };
+}
+
 // ─── React hook ───
 
 export interface UseCommentRefinementResult {

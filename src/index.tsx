@@ -94,6 +94,7 @@ switch (parsed.action) {
             auth={auth}
             workspace={config.workspace}
             repos={config.repos}
+            config={config}
             autoRefreshInterval={config.autoRefreshInterval}
             initialScreen={{ name: "my-prs" }}
           />
@@ -154,6 +155,7 @@ switch (parsed.action) {
           auth={auth}
           workspace={config.workspace}
           repos={config.repos}
+          config={config}
           autoRefreshInterval={config.autoRefreshInterval}
         />
       </QueryClientProvider>
