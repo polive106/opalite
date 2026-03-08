@@ -102,15 +102,15 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/features/diff-review/widgets/CommentRefinement.tsx`
-- [ ] Define `CommentRefinementProps`: `{ header, draft, suggestion?, loading, error?, feedbackMode, feedbackText, onFeedbackChange }`
-- [ ] Implement `formatRefinementHeader(filePath?: string, lineNumber?: number): string` — pure formatting function
-- [ ] Implement loading state rendering: dimmed "Refining comment..." text
-- [ ] Implement suggestion state rendering: draft box + suggestion box + keybinding bar
-- [ ] Implement error state rendering: error message + "s:post original  Esc:cancel"
-- [ ] Implement feedback sub-state rendering: adds feedback input below suggestion
-- [ ] All rendering uses OpenTUI primitives: `<box>`, `<text>`, `<input>`
-- [ ] Write widget tests for each visual state: `formatRefinementHeader()`, loading, suggestion, error, feedback
+- [x] Create `src/features/diff-review/widgets/CommentRefinement.tsx`
+- [x] Define `CommentRefinementProps`: `{ header, draft, suggestion?, loading, error?, feedbackMode, feedbackText, onFeedbackChange }`
+- [x] Implement `formatRefinementHeader(filePath?: string, lineNumber?: number): string` — pure formatting function
+- [x] Implement loading state rendering: dimmed "Refining comment..." text
+- [x] Implement suggestion state rendering: draft box + suggestion box + keybinding bar
+- [x] Implement error state rendering: error message + "s:post original  Esc:cancel"
+- [x] Implement feedback sub-state rendering: adds feedback input below suggestion
+- [x] All rendering uses OpenTUI primitives: `<box>`, `<text>`, `<input>`
+- [x] Write widget tests for each visual state: `formatRefinementHeader()`, loading, suggestion, error, feedback
 
 ## Files to Create/Modify
 
