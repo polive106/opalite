@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   fetchDiffStatFiles,
   fetchPRDiff,
@@ -66,6 +66,7 @@ export function useDiff(
       return { files: diffStatFiles, rawDiff: diff, fileDiffs: parseDiffToFiles(diff) };
     },
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch diff") : null;

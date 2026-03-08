@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 export const DEFAULT_AUTO_REFRESH_INTERVAL = 120;
 import { fetchOpenPRsForAllRepos } from "../../../services/bitbucket";
@@ -112,6 +112,7 @@ export function usePRs(
     queryFn: () => fetchOpenPRsForAllRepos(auth, workspace, repos),
     staleTime: 2 * 60 * 1000,
     refetchInterval: autoRefreshInterval > 0 ? autoRefreshInterval * 1000 : false,
+    placeholderData: keepPreviousData,
   });
 
   const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch PRs") : null;

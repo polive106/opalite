@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { fetchOpenPRsForAllRepos, fetchPRComments } from "../../../services/bitbucket";
 import { queryClient } from "../../../services/queryClient";
 import { queryKeys } from "../../../services/queryKeys";
@@ -57,6 +57,7 @@ export function useMyPRs(
       return { myPRs: filtered, unresolvedCounts: counts };
     },
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   const error = queryError ? (queryError instanceof Error ? queryError.message : "Failed to fetch PRs") : null;

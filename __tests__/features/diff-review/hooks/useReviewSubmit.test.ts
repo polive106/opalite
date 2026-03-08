@@ -6,9 +6,11 @@ import {
   setSubmitting,
   setError,
   resetState,
+  createOptimisticComment,
   type ReviewAction,
   type ReviewSubmitState,
 } from "../../../../src/features/diff-review/hooks/useReviewSubmit";
+import type { AuthData } from "../../../../src/services/auth";
 
 describe("useReviewSubmit pure functions", () => {
   // ─── initReviewState ──────────────────────────────────────────────────────
@@ -99,5 +101,49 @@ describe("useReviewSubmit pure functions", () => {
     expect(reset.submitting).toBe(false);
     expect(reset.error).toBeNull();
     expect(reset.submitted).toBe(false);
+  });
+
+  // ─── createOptimisticComment ──────────────────────────────────────────────
+
+  describe("createOptimisticComment", () => {
+    const mockAuth: AuthData = {
+      email: "reviewer@company.com",
+      apiToken: "ATATtoken123",
+      displayName: "Reviewer",
+      username: "reviewer",
+    };
+
+    it("should create a comment with the correct author info", () => {
+      const now = new Date("2026-03-01T12:00:00Z");
+      const comment = createOptimisticComment(mockAuth, "LGTM!", now);
+
+      expect(comment.author.displayName).toBe("Reviewer");
+      expect(comment.author.nickname).toBe("reviewer");
+      expect(comment.content).toBe("LGTM!");
+      expect(comment.createdOn).toEqual(now);
+    });
+
+    it("should use a negative ID to avoid collisions with server IDs", () => {
+      const now = new Date("2026-03-01T12:00:00Z");
+      const comment = createOptimisticComment(mockAuth, "Nice", now);
+
+      expect(comment.id).toBeLessThan(0);
+    });
+
+    it("should default to a general (non-inline) comment", () => {
+      const comment = createOptimisticComment(mockAuth, "Looks good");
+
+      expect(comment.isInline).toBe(false);
+      expect(comment.filePath).toBeUndefined();
+      expect(comment.lineNumber).toBeUndefined();
+    });
+
+    it("should initialize with empty replies and unresolved state", () => {
+      const comment = createOptimisticComment(mockAuth, "Test");
+
+      expect(comment.resolved).toBe(false);
+      expect(comment.deleted).toBe(false);
+      expect(comment.replies).toEqual([]);
+    });
   });
 });
