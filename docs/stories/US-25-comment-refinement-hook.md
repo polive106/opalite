@@ -48,19 +48,19 @@
 
 ## Technical Tasks
 
-- [ ] Create `src/features/diff-review/hooks/useCommentRefinement.ts`
-- [ ] Define `RefinementStatus` type: `'idle' | 'loading' | 'suggestion' | 'error'`
-- [ ] Define `RefinementState` type: `{ status, draft, suggestion?, error?, history: Array<{ suggestion, feedback }> }`
-- [ ] Implement `useCommentRefinement(config: OpaliteConfig)` returning `{ state, refine, accept, skip, edit, reject, cancel }`
-- [ ] `refine(draft, context)` — build prompt via `buildRefinementPrompt()`, call `queryAgent()`, update state
-- [ ] `accept()` — return suggestion, reset to idle
-- [ ] `skip()` — return original draft, reset to idle
-- [ ] `edit()` — return suggestion text for loading into editor, reset to idle
-- [ ] `reject(feedback)` — append to history, build rejection prompt via `buildRejectionPrompt()`, call `queryAgent()`, update state
-- [ ] `cancel()` — kill agent process if running, reset to idle
-- [ ] Handle no-agent: `refine()` immediately returns `{ status: 'idle' }` with draft as result
-- [ ] Handle multi-round: history truncated to last 3 rounds in prompt to avoid context limits
-- [ ] Write unit tests for all state transitions with mocked `queryAgent()`
+- [x] Create `src/features/diff-review/hooks/useCommentRefinement.ts`
+- [x] Define `RefinementStatus` type: `'idle' | 'loading' | 'suggestion' | 'error'`
+- [x] Define `RefinementState` type: `{ status, draft, suggestion?, error?, history: Array<{ suggestion, feedback }> }`
+- [x] Implement `useCommentRefinement(config: OpaliteConfig)` returning `{ state, refine, accept, skip, edit, reject, cancel }`
+- [x] `refine(draft, context)` — build prompt via `buildRefinementPrompt()`, call `queryAgent()`, update state
+- [x] `accept()` — return suggestion, reset to idle
+- [x] `skip()` — return original draft, reset to idle
+- [x] `edit()` — return suggestion text for loading into editor, reset to idle
+- [x] `reject(feedback)` — append to history, build rejection prompt via `buildRejectionPrompt()`, call `queryAgent()`, update state
+- [x] `cancel()` — kill agent process if running, reset to idle
+- [x] Handle no-agent: `refine()` immediately returns `{ status: 'idle' }` with draft as result
+- [x] Handle multi-round: history truncated to last 3 rounds in prompt to avoid context limits
+- [x] Write unit tests for all state transitions with mocked `queryAgent()`
 
 ## Files to Create/Modify
 
