@@ -1,5 +1,20 @@
 # opalite
 
+## 0.5.0
+
+### Minor Changes
+
+- a8c142a: Add agent service for spawning configured AI CLI agents in print mode. Includes `queryAgent()` to capture agent output, `buildAgentCommand()` for template parsing, and `getAgentConfig()` for reading agent configuration. Handles timeout, ENOENT, non-zero exit, and empty output edge cases.
+- 151c274: Add comment refinement prompt builder service (US-24) with buildRefinementPrompt, buildRejectionPrompt, and formatCommentsForPrompt functions.
+- d8c7f29: Add comment refinement loop hook (useCommentRefinement) with state machine for AI-assisted comment refinement, multi-round rejection with history truncation, and graceful no-agent degradation.
+- 4642c06: Add CommentRefinement widget for AI-assisted review comment refinement loop.
+- a665eff: Wire AI comment refinement into the DiffNav comment flow. When a reviewer submits a comment and an agent is configured, the draft is refined through a conversational AI loop (accept/skip/edit/reject) before posting to Bitbucket. Gracefully degrades to direct posting when no agent is configured.
+
+### Patch Changes
+
+- dd9ffc7: Expand README into a comprehensive team-facing guide: full keyboard reference for every screen, reviewer + author workflow walkthroughs, AI agent integration explanation, configuration reference, troubleshooting section, and contributor guide pointing at TDD + changesets workflow.
+- fc0a8f7: Polish TanStack Query integration: add keepPreviousData for smooth transitions, optimistic comment updates with rollback, test QueryClient utility, cache-hit tests, and query pattern docs.
+
 ## 0.4.0
 
 ### Minor Changes
